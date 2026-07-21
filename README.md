@@ -7,15 +7,16 @@ in-browser -> WebSocket -> structured JSON, not raw video.
 
 ## Status
 
-Phase 0/1 in progress: Supabase memory backend scaffolded. See the build plan for the
-full phase breakdown.
+Phase 0/1 done, Phase 2 scaffolded. See the build plan for the full phase breakdown.
 
 - [x] Repo scaffolded
 - [x] Supabase schema/migration written (`short_term_memory`, `long_term_memory`)
 - [x] Supabase client (service + anon) added
-- [ ] Migration applied to the live Supabase project (manual step, see below)
+- [x] Migration applied to the live Supabase project
+- [x] WebXR scene shell (Three.js, open expanse, no fixed avatar)
 - [ ] Consolidation job (Edge Function / cron) -- not yet built
 - [ ] Retrieval wired into an actual conversation loop -- not yet built
+- [ ] Scene driven by real memory state instead of demo oscillation (Phase 3/4)
 
 ## Setup
 
@@ -108,7 +109,43 @@ supabase/migrations/   -- SQL schema/migrations
 src/lib/                -- Supabase client setup
 src/memory/             -- short-term / long-term memory read+write + types
 scripts/                -- one-off scripts (connection check, etc.)
+web/                    -- WebXR scene shell (Three.js + Vite)
 ```
+
+## WebXR scene shell (Phase 2)
+
+`web/` is a separate Vite project (different runtime target than the Node backend
+above -- browser vs. server). Run it with:
+
+```sh
+cd web
+npm install
+npm run dev
+```
+
+Open the printed local URL in a browser -- no headset or install required, it
+renders as a normal 3D scene. On a WebXR-capable browser/headset (e.g. Quest
+Browser reaching this machine over the network via the printed "Network" URL),
+the "ENTER VR" button becomes active.
+
+Design, matching the build plan's Phase 2 intent:
+
+- **Open expanse, not a room**: no walls or ceiling. A sparse field of points
+  (`web/src/scene/environment.ts`) extends to the horizon with fog softening the
+  edges instead of hard geometry.
+- **Memory load -> geometry/particle density**: `Environment.setMemoryLoad(0..1)`
+  scales how many of the field's points are drawn.
+- **Retrieval state -> light/color**: `Environment.setRetrievalCoherence(0..1)` and
+  `Presence.setCoherence(0..1)` shift ambient light and presence color between cold
+  scattered blue and warm coherent gold.
+- **No fixed humanoid avatar**: Ansuz's presence (`web/src/scene/presence.ts`) is a
+  point cloud that tightens and warms when coherent, loosens and cools when
+  scattered -- a locus of activity, not a body.
+
+`web/src/main.ts` currently drives memory load and coherence with a slow sine
+oscillation so the effect is visible before real data exists -- that's a
+placeholder for Phase 3/4, which will feed it actual short-term memory volume and
+retrieval-similarity scores over the WebSocket instead.
 
 ## Next steps
 
@@ -116,4 +153,7 @@ scripts/                -- one-off scripts (connection check, etc.)
   window, decide what gets promoted to long-term, call `prune_short_term_memory()`.
 - Decide promotion criteria (what counts as "important enough" for `importance`).
 - Wire `logInteraction` / `retrieveRelevantMemories` into an actual conversation loop.
-- Phase 2+: WebXR scene shell, MediaPipe perception layer, ambient loop, self-improvement loop.
+- Replace `web/src/main.ts`'s demo oscillation with real memory-state input.
+- Phase 3: MediaPipe perception layer (WASM, client-side) streaming structured JSON
+  over WebSocket into the scene.
+- Phase 4+: conversational/ambient loop, self-improvement loop.
