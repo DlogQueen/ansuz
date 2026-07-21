@@ -1,0 +1,20 @@
+{
+  "name": "ansuz",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Persistent VR/XR space with a continuously-running AI presence.",
+  "scripts": {
+    "test:connection": "tsx scripts/test-connection.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
+  }
+}
