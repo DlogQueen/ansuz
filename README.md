@@ -1,9 +1,10 @@
 # Ansuz
 
-Persistent VR/XR space with a continuously-running AI presence: memory, feedback loop,
-self-improvement, MediaPipe-driven perception. General research space (the specific
-product built on it is called IBI). Reuses IBI's architecture pattern -- MediaPipe
-in-browser -> WebSocket -> structured JSON, not raw video.
+Persistent VR/XR space with a continuously-running AI presence named **Sophie**:
+memory, feedback loop, self-improvement, MediaPipe-driven perception. Ansuz is the
+environment/research space Sophie is embodied in (the specific product built on it is
+called IBI). Reuses IBI's architecture pattern -- MediaPipe in-browser -> WebSocket ->
+structured JSON, not raw video. See `docs/persona.md` for Sophie's character.
 
 ## Status
 
@@ -138,7 +139,7 @@ Design, matching the build plan's Phase 2 intent:
 - **Retrieval state -> light/color**: `Environment.setRetrievalCoherence(0..1)` and
   `Presence.setCoherence(0..1)` shift ambient light and presence color between cold
   scattered blue and warm coherent gold.
-- **No fixed humanoid avatar**: Ansuz's presence (`web/src/scene/presence.ts`) is a
+- **No fixed humanoid avatar**: Sophie's presence (`web/src/scene/presence.ts`) is a
   point cloud that tightens and warms when coherent, loosens and cools when
   scattered -- a locus of activity, not a body.
 

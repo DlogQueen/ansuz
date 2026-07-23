@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /**
- * Ansuz's presence: a locus of activity, not a body. A point cloud that
+ * Sophie's presence: a locus of activity, not a body. A point cloud that
  * draws tight and warm when retrieval is coherent, and loosens/cools when
  * scattered. No fixed humanoid form -- this is deliberate (see build plan,
  * Phase 2).
