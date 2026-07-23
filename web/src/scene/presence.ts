@@ -39,7 +39,7 @@ export function createPresence(scene: THREE.Scene): Presence {
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(basePositions.slice(), 3));
+  geometry.setAttribute('position', new THREE.BufferAttribute(basePositions, 3));
 
   const material = new THREE.PointsMaterial({
     color: COLD_COLOR.clone(),
@@ -57,28 +57,17 @@ export function createPresence(scene: THREE.Scene): Presence {
 
   scene.add(group);
 
-  let coherence = 0.5;
-  const positionAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-
-  function applyRadius() {
-    const radius = THREE.MathUtils.lerp(LOOSE_RADIUS, TIGHT_RADIUS, coherence);
-    for (let i = 0; i < POINT_COUNT; i++) {
-      positionAttr.setXYZ(
-        i,
-        basePositions[i * 3] * radius,
-        basePositions[i * 3 + 1] * radius,
-        basePositions[i * 3 + 2] * radius
-      );
-    }
-    positionAttr.needsUpdate = true;
-  }
-  applyRadius();
+  // basePositions already describe a unit sphere, so coherence -> radius is
+  // just a uniform scale on the Points object -- no per-vertex CPU work and
+  // no GPU buffer re-upload, unlike rewriting the position attribute.
+  points.scale.setScalar(THREE.MathUtils.lerp(LOOSE_RADIUS, TIGHT_RADIUS, 0.5));
 
   return {
     group,
     setCoherence(value: number) {
-      coherence = THREE.MathUtils.clamp(value, 0, 1);
-      applyRadius();
+      const coherence = THREE.MathUtils.clamp(value, 0, 1);
+      const radius = THREE.MathUtils.lerp(LOOSE_RADIUS, TIGHT_RADIUS, coherence);
+      points.scale.setScalar(radius);
       const color = COLD_COLOR.clone().lerp(WARM_COLOR, coherence);
       material.color.copy(color);
       light.color.copy(color);
