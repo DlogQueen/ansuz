@@ -6,14 +6,19 @@
   "description": "Persistent VR/XR space with a continuously-running AI presence.",
   "scripts": {
     "test:connection": "tsx scripts/test-connection.ts",
+    "chat": "tsx scripts/chat.ts",
+    "server": "tsx scripts/server.ts",
+    "consolidate": "tsx scripts/consolidate.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "ws": "^8.21.1"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",
+    "@types/ws": "^8.18.1",
     "tsx": "^4.19.1",
     "typescript": "^5.5.4"
   }

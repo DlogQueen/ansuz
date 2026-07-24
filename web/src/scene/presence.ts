@@ -1,91 +1,46 @@
 import * as THREE from 'three';
 
 /**
- * Ansuz's presence: a locus of activity, not a body. A point cloud that
- * draws tight and warm when retrieval is coherent, and loosens/cools when
- * scattered. No fixed humanoid form -- this is deliberate (see build plan,
- * Phase 2).
+ * Ambient coherence light. Originally a visible point cloud standing in for
+ * Ansuz herself -- superseded by her humanoid body (ansuzAvatar.ts) per the
+ * build plan's Phase 2, which calls for a real embodied form rather than an
+ * abstract locus. What's left here is the PointLight that cloud carried:
+ * still a real, load-bearing light source for the scene (Ryleigh's avatar's
+ * PBR material relies on it, alongside environment.ts's hemisphere light --
+ * NOT Ansuz's avatar, whose ShaderMaterial is fully custom/unlit and ignores
+ * scene lights entirely; her brightness comes only from the glowIntensity
+ * uniform in glowMaterial.ts).
+ *
+ * Raised above head height rather than left at the old point-cloud's
+ * position (0, 1.6, -3) -- that height sat inside Ansuz's chest once her
+ * avatar occupied the same spot, visible as a bright point glaring through
+ * her (unlit, so unaffected by it) translucent body.
  */
 export interface Presence {
   group: THREE.Group;
   /** 0 = scattered/loose/cool, 1 = coherent/tight/warm. */
   setCoherence(coherence: number): void;
-  /** Advance idle motion. Call once per frame. */
-  update(deltaSeconds: number): void;
 }
-
-const POINT_COUNT = 1500;
-const TIGHT_RADIUS = 0.6;
-const LOOSE_RADIUS = 2.4;
 
 const COLD_COLOR = new THREE.Color('#6d86ff');
 const WARM_COLOR = new THREE.Color('#ffdf9a');
 
 export function createPresence(scene: THREE.Scene): Presence {
   const group = new THREE.Group();
-  group.position.set(0, 1.6, -3);
-
-  const basePositions = new Float32Array(POINT_COUNT * 3);
-  for (let i = 0; i < POINT_COUNT; i++) {
-    // random point inside a unit sphere
-    const u = Math.random();
-    const v = Math.random();
-    const theta = 2 * Math.PI * u;
-    const phi = Math.acos(2 * v - 1);
-    const r = Math.cbrt(Math.random());
-    basePositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    basePositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-    basePositions[i * 3 + 2] = r * Math.cos(phi);
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(basePositions.slice(), 3));
-
-  const material = new THREE.PointsMaterial({
-    color: COLD_COLOR.clone(),
-    size: 0.05,
-    transparent: true,
-    opacity: 0.9,
-    sizeAttenuation: true,
-  });
-
-  const points = new THREE.Points(geometry, material);
-  group.add(points);
+  group.position.set(0, 4, -3);
 
   const light = new THREE.PointLight(COLD_COLOR.clone(), 4, 8);
   group.add(light);
 
   scene.add(group);
 
-  let coherence = 0.5;
-  const positionAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-
-  function applyRadius() {
-    const radius = THREE.MathUtils.lerp(LOOSE_RADIUS, TIGHT_RADIUS, coherence);
-    for (let i = 0; i < POINT_COUNT; i++) {
-      positionAttr.setXYZ(
-        i,
-        basePositions[i * 3] * radius,
-        basePositions[i * 3 + 1] * radius,
-        basePositions[i * 3 + 2] * radius
-      );
-    }
-    positionAttr.needsUpdate = true;
-  }
-  applyRadius();
-
   return {
     group,
     setCoherence(value: number) {
-      coherence = THREE.MathUtils.clamp(value, 0, 1);
-      applyRadius();
+      const coherence = THREE.MathUtils.clamp(value, 0, 1);
       const color = COLD_COLOR.clone().lerp(WARM_COLOR, coherence);
-      material.color.copy(color);
       light.color.copy(color);
       light.intensity = THREE.MathUtils.lerp(2, 5, coherence);
-    },
-    update(deltaSeconds: number) {
-      group.rotation.y += deltaSeconds * 0.15;
     },
   };
 }

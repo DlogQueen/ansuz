@@ -13,9 +13,10 @@ Phase 0/1 done, Phase 2 scaffolded. See the build plan for the full phase breakd
 - [x] Supabase schema/migration written (`short_term_memory`, `long_term_memory`)
 - [x] Supabase client (service + anon) added
 - [x] Migration applied to the live Supabase project
-- [x] WebXR scene shell (Three.js, open expanse, no fixed avatar)
-- [ ] Consolidation job (Edge Function / cron) -- not yet built
-- [ ] Retrieval wired into an actual conversation loop -- not yet built
+- [x] WebXR scene shell (Three.js, humanoid avatars for Ansuz and Ryleigh)
+- [x] Retrieval wired into an actual conversation loop (`npm run chat`)
+- [ ] Consolidation job (Edge Function / cron) -- not yet built, so long-term
+      memory stays empty until something populates it
 - [ ] Scene driven by real memory state instead of demo oscillation (Phase 3/4)
 
 ## Setup
@@ -55,6 +56,10 @@ Phase 0/1 done, Phase 2 scaffolded. See the build plan for the full phase breakd
 
    This requires `SUPABASE_SERVICE_ROLE_KEY` to be set, since memory tables have no
    policies for the anon role (see below).
+
+5. To use the conversation loop (`npm run chat`), also fill in `OPENROUTER_API_KEY`
+   and `OPENROUTER_MODEL` in `.env` -- see [Conversation loop](#conversation-loop)
+   below.
 
 ## Schema
 
@@ -108,9 +113,31 @@ it just isn't wired to the memory tables.
 supabase/migrations/   -- SQL schema/migrations
 src/lib/                -- Supabase client setup
 src/memory/             -- short-term / long-term memory read+write + types
-scripts/                -- one-off scripts (connection check, etc.)
+src/llm/                -- OpenRouter chat completion + embeddings clients
+src/conversation/       -- the conversation loop (retrieve -> log -> generate -> log)
+scripts/                -- one-off scripts (connection check, chat REPL, etc.)
 web/                    -- WebXR scene shell (Three.js + Vite)
 ```
+
+## Conversation loop
+
+```sh
+npm run chat
+```
+
+Interactive REPL (`scripts/chat.ts` -> `src/conversation/loop.ts`): each turn logs
+the user message to `short_term_memory`, embeds it and retrieves relevant
+`long_term_memory` entries, sends the session's recent history plus that context to
+the model via OpenRouter, and logs the reply back to `short_term_memory`.
+
+Requires `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` in `.env` -- see
+`.env.example`. `OPENROUTER_MODEL` is deliberately not defaulted: the build
+plan's Experiment Protocol compares persistent-memory behavior across models,
+so pick one per run rather than silently defaulting.
+
+Long-term memory retrieval will return nothing until the consolidation job (below,
+still unbuilt) has actually promoted something into it -- expected early on, not a
+bug.
 
 ## WebXR scene shell (Phase 2)
 
@@ -138,9 +165,12 @@ Design, matching the build plan's Phase 2 intent:
 - **Retrieval state -> light/color**: `Environment.setRetrievalCoherence(0..1)` and
   `Presence.setCoherence(0..1)` shift ambient light and presence color between cold
   scattered blue and warm coherent gold.
-- **No fixed humanoid avatar**: Ansuz's presence (`web/src/scene/presence.ts`) is a
-  point cloud that tightens and warms when coherent, loosens and cools when
-  scattered -- a locus of activity, not a body.
+- **Humanoid avatars for both**: Ansuz (`web/src/scene/ansuzAvatar.ts`, Mixamo X
+  Bot reskinned with a translucent fresnel-glow `ShaderMaterial`,
+  `web/src/materials/glowMaterial.ts`) and Ryleigh (`web/src/scene/ryleighAvatar.ts`,
+  Avaturn export). `presence.ts` no longer renders a body -- it originally did (a
+  point cloud), superseded by Ansuz's avatar per the build plan's Phase 2; it now
+  only provides the ambient `PointLight` it always carried, still coherence-driven.
 
 `web/src/main.ts` currently drives memory load and coherence with a slow sine
 oscillation so the effect is visible before real data exists -- that's a
@@ -151,9 +181,11 @@ retrieval-similarity scores over the WebSocket instead.
 
 - Build the consolidation job (Edge Function or cron): summarize the short-term
   window, decide what gets promoted to long-term, call `prune_short_term_memory()`.
+  Without this, `npm run chat` keeps working but long-term retrieval stays empty.
 - Decide promotion criteria (what counts as "important enough" for `importance`).
-- Wire `logInteraction` / `retrieveRelevantMemories` into an actual conversation loop.
+- Exposed-joint/circuitry texture detail for Ansuz's avatar (modeling/texture
+  authoring, not shader work -- no assets exist yet).
 - Replace `web/src/main.ts`'s demo oscillation with real memory-state input.
 - Phase 3: MediaPipe perception layer (WASM, client-side) streaming structured JSON
   over WebSocket into the scene.
-- Phase 4+: conversational/ambient loop, self-improvement loop.
+- Phase 4+: self-improvement loop.
