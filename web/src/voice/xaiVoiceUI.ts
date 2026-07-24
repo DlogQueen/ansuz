@@ -158,7 +158,7 @@ export function createXaiVoiceUI(xr: THREE.WebXRManager): VoiceUI {
       // immediately flip the flag back, so a single real hold produced a
       // press()/release() pair every frame (~90/sec) for the whole hold --
       // that's what actually sent 1256 requests in ~14 seconds, not sensor
-      // noise. Same bug existed in voiceUI.ts; fixed there too.
+      // noise.
       let anyPressed = false;
       for (const source of session.inputSources) {
         if (source.gamepad?.buttons[TRIGGER_BUTTON_INDEX]?.pressed) {

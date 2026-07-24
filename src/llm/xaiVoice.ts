@@ -9,8 +9,8 @@ export interface VoiceSession {
 /**
  * Mints a short-lived ephemeral token so the browser can open the realtime
  * WebSocket directly against xAI without ever seeing XAI_API_KEY. Unlike
- * OpenAI's WebRTC realtime API (src/llm/realtime.ts), this is a plain
- * WebSocket -- wss://api.x.ai/v1/realtime?agent_id=... -- and the referenced
+ * OpenAI's WebRTC realtime API, this is a plain WebSocket --
+ * wss://api.x.ai/v1/realtime?agent_id=... -- and the referenced
  * agent (Sophie, built in xAI's Voice Agent Builder console) already carries
  * its own instructions/voice/tools server-side; there's no session field to
  * push our own instructions into at connect time, confirmed against the live

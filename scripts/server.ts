@@ -4,14 +4,9 @@ import { WebSocketServer } from 'ws';
 import { respond } from '../src/conversation/loop.js';
 import { transcribeAudioGroq } from '../src/llm/groqTranscription.js';
 import { synthesizeSpeechGroq } from '../src/llm/groqTts.js';
-// Deepgram-via-OpenRouter (transcription.js) and local Piper (piperTts.js)
-// are kept in the codebase, unused, as fallbacks -- swap the two calls below
-// back to those if Groq's free tier ever isn't enough or is unavailable.
-import { relayRealtimeOffer } from '../src/llm/realtime.js';
 import { mintVoiceSession } from '../src/llm/xaiVoice.js';
 import { logInteraction } from '../src/memory/shortTermMemory.js';
 import { consolidateMemory } from '../src/memory/consolidation.js';
-import { SYSTEM_PROMPT } from '../src/conversation/systemPrompt.js';
 
 /**
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
@@ -19,10 +14,9 @@ import { SYSTEM_PROMPT } from '../src/conversation/systemPrompt.js';
  * Supabase service-role key -- see src/lib/supabaseClient.ts's warning never
  * to import that into browser-facing code), transcription + TTS (hold
  * GROQ_API_KEY -- Whisper + Orpheus, fast and free-tier for personal use),
- * the OpenAI realtime voice handshake (holds OPENAI_API_KEY, unused unless
- * that account gets funded), and xAI voice session token minting (holds
- * XAI_API_KEY -- see src/llm/xaiVoice.ts, this is the active voice pipeline),
- * and a WebSocket endpoint (/api/perception) ingesting MediaPipe hand-tracking
+ * and xAI voice session token minting (holds XAI_API_KEY -- see
+ * src/llm/xaiVoice.ts, this is the active voice pipeline), and a WebSocket
+ * endpoint (/api/perception) ingesting MediaPipe hand-tracking
  * events from the browser. Not exposed to the LAN directly: web/vite.config.ts
  * proxies /api here so the browser only ever talks to Vite's own (HTTPS)
  * origin, same-origin, no separate cert or CORS needed.
@@ -76,17 +70,6 @@ const server = createServer(async (req, res) => {
       }
       const audio = await synthesizeSpeechGroq(body.text);
       sendJson(res, 200, { audio: audio.toString('base64') });
-      return;
-    }
-
-    if (req.method === 'POST' && req.url === '/api/realtime-session') {
-      const sdpOffer = await readTextBody(req);
-      // No per-turn retrieval possible here -- the backend relays this one
-      // handshake and then drops out of the audio path entirely (browser
-      // <-> OpenAI directly after this). See src/llm/realtime.ts.
-      const sdpAnswer = await relayRealtimeOffer(sdpOffer, SYSTEM_PROMPT);
-      res.writeHead(200, { 'Content-Type': 'application/sdp' });
-      res.end(sdpAnswer);
       return;
     }
 

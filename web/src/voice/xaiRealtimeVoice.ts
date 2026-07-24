@@ -8,7 +8,7 @@ import { startPcmCapture, createPcmPlayer, type PcmCapture, type PcmPlayer } fro
  * `session.updated` event arrives with her config before any client message
  * is even processed) -- we never send our own `instructions` here.
  *
- * Unlike OpenAI's WebRTC realtime API (realtimeVoice.ts), this is a plain
+ * Unlike OpenAI's WebRTC realtime API, this is a plain
  * WebSocket carrying JSON events with base64 PCM16 audio, so mic capture and
  * playback are hand-rolled (see pcmAudio.ts) instead of using
  * RTCPeerConnection media tracks. The connection stays open across multiple

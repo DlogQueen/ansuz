@@ -2,7 +2,7 @@
  * Push-to-talk mic capture via getUserMedia + MediaRecorder -- standard
  * WebRTC APIs, not the Web Speech API's SpeechRecognition (confirmed
  * unsupported in Meta Quest Browser, and in Wolvic too). Audio is sent to
- * the backend for transcription -- see src/llm/transcription.ts.
+ * the backend for transcription -- see src/llm/groqTranscription.ts.
  */
 export interface RecordingResult {
   base64: string;
