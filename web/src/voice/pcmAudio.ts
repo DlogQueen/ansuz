@@ -54,6 +54,8 @@ export interface PcmPlayer {
   push(base64Pcm16: string): void;
   /** Drop any queued-but-not-yet-played audio, e.g. when the user interrupts. */
   reset(): void;
+  /** Release the AudioContext -- browsers cap concurrent contexts (~6), and a new one is created on every reconnect. */
+  close(): void;
 }
 
 export function createPcmPlayer(): PcmPlayer {
@@ -80,6 +82,9 @@ export function createPcmPlayer(): PcmPlayer {
     },
     reset() {
       nextStartTime = audioCtx.currentTime;
+    },
+    close() {
+      void audioCtx.close();
     },
   };
 }

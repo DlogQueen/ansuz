@@ -172,6 +172,8 @@ export function createXaiRealtimeVoice(
     ready = attemptConnect().catch((error) => {
       ready = null;
       ws = null;
+      player?.close();
+      player = null;
       onFatalError?.(error instanceof Error ? error.message : String(error));
       throw error;
     });
@@ -238,6 +240,8 @@ export function createXaiRealtimeVoice(
           if (ws === socket) {
             ready = null;
             ws = null;
+            player?.close();
+            player = null;
           }
         });
       });
@@ -249,14 +253,31 @@ export function createXaiRealtimeVoice(
     ws?.close();
     ws = null;
     ready = null;
+    player?.close();
     player = null;
     onStatus('disconnected');
   }
 
   let captureStartedAt = 0;
+  // Set by release() when it runs while press() is still inside `await
+  // connect()` (capture is null at that point, so release() has nothing to
+  // stop) -- common on the first press of a session or right after a
+  // reconnect, since token mint + WS open + waiting for session.updated can
+  // easily outlast a short hold. Without this, press() would start mic
+  // capture anyway once connect() resolves, with no pending release to ever
+  // stop it -- hot mic until the *next* release, which then dumps the whole
+  // backlog as one oversized turn.
+  let releasedDuringConnect = false;
 
   async function press(): Promise<void> {
+    if (capture) return;
+    releasedDuringConnect = false;
     await connect();
+    if (releasedDuringConnect) {
+      releasedDuringConnect = false;
+      onStatus('connected -- hold to talk');
+      return;
+    }
     if (capture) return;
     onStatus('listening...');
     player?.reset();
@@ -280,7 +301,10 @@ export function createXaiRealtimeVoice(
   const MIN_HOLD_MS = 150;
 
   function release(): void {
-    if (!capture) return;
+    if (!capture) {
+      releasedDuringConnect = true;
+      return;
+    }
     const heldMs = performance.now() - captureStartedAt;
     capture.stop();
     capture = null;
