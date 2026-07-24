@@ -1,8 +1,8 @@
-# Ansuz — status as of 2026-07-23
+# Ansuz — status as of 2026-07-23 (updated same day, after the voice/avatar session)
 
-Snapshot written mid-session, right before a planned pause to think through the
-realtime-voice architecture decision. Not a permanent doc — check git history /
-README.md for anything that drifts from this over time.
+Snapshot updated after a debug pass (Opus-reviewed) and cleanup on top of the
+Phase 2 voice/avatar work. Not a permanent doc — check git history / README.md
+for anything that drifts from this over time.
 
 ## What's fully working and verified
 
@@ -14,12 +14,46 @@ README.md for anything that drifts from this over time.
   relevant long-term memories → sends session history + context to
   `OPENROUTER_MODEL` → logs the reply. **Verified end-to-end with real data** —
   Supabase row counts confirmed before/after a real exchange.
-- `scripts/server.ts`: local HTTP bridge exposing `/api/chat` and
-  `/api/transcribe` so the browser (untrusted) can reach conversation-loop logic
-  that holds real secrets, without those secrets ever reaching the browser.
-  `web/vite.config.ts` proxies `/api` here — same-origin from the browser, so it
-  works identically over `localhost` and the Quest's LAN URL with no CORS/cert
-  wrangling.
+- `scripts/server.ts`: local HTTP bridge exposing `/api/chat`, `/api/transcribe`,
+  `/api/tts`, `/api/voice-session`, `/api/consolidate`, `/api/log-turn`, and a
+  `/api/perception` WebSocket, so the browser (untrusted) can reach
+  server-side-only work without secrets ever reaching it. `web/vite.config.ts`
+  proxies `/api` here — same-origin from the browser, works identically over
+  `localhost` and the Quest's LAN URL with no CORS/cert wrangling.
+
+**Voice (resolved, replaces the old "open decision" below)**
+- xAI's Voice Agent API — **confirmed working live end-to-end in-browser**
+  (typed message, real audio reply heard, transcript rendered). Ryleigh had $10
+  already funded on xAI and pivoted here instead of OpenAI Realtime.
+  `src/llm/xaiVoice.ts` mints ephemeral tokens server-side, `web/src/voice/
+  xaiRealtimeVoice.ts` + `xaiVoiceUI.ts` are the active client path (wired into
+  `main.ts`), `web/src/voice/pcmAudio.ts` hand-rolls PCM16 capture/playback
+  since xAI's WS speaks raw linear16 JSON, not a container format.
+- Groq (Whisper transcribe + Orpheus TTS) is the automatic fallback if xAI
+  errors out (`voiceUI` batch path inside `xaiVoiceUI.ts`, `recorder.ts`,
+  `chatClient.ts`) — same Sophie persona either way, just a different voice
+  transport. Falling back is one-way for the rest of the page session (no
+  auto-retry of xAI).
+- **Two bugs found in a static/type-level debug pass (Opus) and fixed same
+  day, never having shipped to a real session:**
+  - `xaiRealtimeVoice.ts`: `release()` was a no-op while `press()` was still
+    inside `await connect()` (capture not yet created), so a quick tap during
+    a slow first connect left the mic streaming with nothing to stop it —
+    hot mic until the *next* release, which then dumped the whole backlog as
+    one oversized turn. Fixed with a `releasedDuringConnect` flag that
+    `press()` checks once `connect()` resolves.
+  - `pcmAudio.ts`: the playback `AudioContext` was never closed on any
+    teardown path (disconnect, unexpected close, failed connect) — browsers
+    cap concurrent contexts at ~6, so enough reconnects would eventually
+    break voice for the rest of the page session. `PcmPlayer` now has a
+    `close()`, called everywhere the player is torn down.
+- **Dead code removed same pass** (zero importers, all leftovers from before
+  the xAI decision): `web/src/voice/voiceUI.ts` (old Groq-only UI, superseded
+  by the fallback path folded into `xaiVoiceUI.ts`), `realtimeVoice.ts` +
+  `src/llm/realtime.ts` (OpenAI WebRTC client/relay, account never funded),
+  `src/llm/transcription.ts` (Deepgram), `src/llm/piperTts.ts` (local TTS).
+  The now-unreachable `/api/realtime-session` route and the dead
+  `OPENAI_API_KEY` env var were removed too.
 
 **WebXR scene (Phase 2)**
 - Both avatars grounded, animated, correctly scaled:
@@ -29,101 +63,72 @@ README.md for anything that drifts from this over time.
     regardless of app-level layer settings).
   - Ansuz (`ansuzAvatar.ts`, Mixamo X Bot + "Breathing Idle") — reskinned with
     a custom translucent fresnel rim-glow `ShaderMaterial`
-    (`materials/glowMaterial.ts`, hand-written skinning-aware vertex shader)
-    plus an internal spine/head `THREE.Points` glow. Both tied to the same
-    `coherence` signal driving `environment.ts`. Stands where the old
-    point-cloud "presence" used to be — that point cloud is retired;
-    `presence.ts` now only keeps the ambient `PointLight` it always carried
-    (repositioned overhead, was sitting inside Ansuz's chest before).
+    (`materials/glowMaterial.ts`, hand-written skinning-aware vertex shader —
+    **verified correct against three r185's internals**: `WebGLPrograms`/
+    `WebGLProgram`/`WebGLRenderer` all key skinning support off
+    `object.isSkinnedMesh`, independent of material type) plus an internal
+    spine/head `THREE.Points` glow. Both tied to the same `coherence` signal
+    driving `environment.ts`. Stands where the old point-cloud "presence"
+    used to be — that point cloud is retired; `presence.ts` now only keeps
+    the ambient `PointLight` it always carried.
   - Missing from Ansuz's avatar: exposed-joint/circuitry texture detail
     (modeling/texture authoring — no assets exist).
 - Thumbstick locomotion (`xr/locomotion.ts`) — moves a camera-parent `dolly`
   group since the XR system owns the camera's local transform directly.
   **User-confirmed working in-headset.**
-- DOM overlay requested (`xr/xrSession.ts`) so HTML UI (voice status text,
-  buttons) stays visible inside an immersive session — just added, unverified.
+- Hand-tracking perception (`web/src/perception/handTracking.ts`,
+  `perceptionUI.ts`) streams discrete gesture/appearance events over the
+  `/api/perception` WebSocket, logged server-side with `role: 'perception'`.
+  Client-side scaffolding is in and typechecks; not yet confirmed against a
+  real headset session.
 
-## What's built but not fully verified
+## Built but not yet verified end-to-end
 
-**Voice pipeline** (mid-rebuild after `SpeechRecognition` turned out to be
-unsupported in Meta Quest Browser — confirmed by on-device testing, and Wolvic
-doesn't support it either per
-[a Wolvic GitHub issue](https://github.com/Igalia/wolvic/issues/1443)):
-
-- Current architecture: `getUserMedia`/`MediaRecorder` (browser, standard
-  WebRTC, not the flaky Speech API) → `/api/transcribe` → Deepgram Nova-3 via
-  OpenRouter (~$0.0043/min) → existing chat loop → `speechSynthesis` (browser
-  TTS).
-- Mic permission prompt **confirmed appearing** on the Quest — real progress,
-  proves `getUserMedia` works where `SpeechRecognition` didn't.
-- Full record → transcribe → reply round trip **not yet confirmed working
-  in-headset**.
-- TTS confirmed **not producing audible speech** on the desktop test machine —
-  diagnosed as likely zero system TTS voices on this Linux dev box
-  (`speechSynthesis.getVoices().length === 0`, confirmed via direct query) —
-  separately, a real Chrome quirk exists where the "user activation" window
-  needed for `speechSynthesis.speak()` can expire during the transcribe+chat
-  async round trip. Both a defensive fix (`primeVoiceOutput()`, called
-  synchronously on press) and error logging were added, but **neither
-  confirmed fixed** — untested on the actual headset.
-- User reported "text no voice" and "no audio captured [on quick taps]" — the
-  latter is very likely just tap-vs-hold confusion (a real click is too fast to
-  capture meaningful audio), not a bug.
+- **Memory consolidation** (`src/memory/consolidation.ts`) — implemented:
+  groups `short_term_memory` by session, summarizes idle-looking sessions via
+  OpenRouter into `long_term_memory` (with an embedding), deletes the
+  consolidated rows. Wired into `scripts/server.ts` on a 15-min interval plus
+  an on-demand `/api/consolidate` (force-mode — see caution below). **Never
+  actually run against real data yet** — this is now the biggest
+  verification gap, not a build gap: long-term retrieval in the chat loop
+  still has nothing to draw on until a real consolidation run is confirmed.
+- `POST /api/consolidate` uses `force: true`, which skips the idle check and
+  will consolidate + delete short-term rows for a session that's still
+  actively mid-conversation. Fine to hit manually right after a test session;
+  don't wire a client button to it without a guard.
+- Environment/presence (`environment.ts`, `presence.ts`) still driven by a
+  placeholder sine-wave oscillator in `main.ts`, not real memory-load/
+  retrieval-coherence data — proves the visuals react to state changes, but
+  isn't connected to anything real yet.
 
 ## Explicitly not built at all
 
-- **Consolidation job** — long-term memory stays empty until this exists.
-  Single biggest remaining backend gap.
-- **MediaPipe perception** (Phase 3) — Ansuz doesn't perceive Ryleigh's actual
-  presence/movement; the scene only reacts to a placeholder sine-wave
-  oscillator standing in for real memory-load/coherence data.
+- **MediaPipe perception feeding live per-turn context** — perception events
+  are logged and reach memory via consolidation, but `conversation/loop.ts`
+  only pulls `user`/`assistant` rows into the model's message history, so
+  Sophie/Ansuz doesn't yet perceive Ryleigh's presence *during* a live turn.
 - **Self-improvement loop** (Phase 4+).
-- **Realtime voice (OpenAI Realtime API)** — decision made this session (go
-  with OpenAI, `gpt-realtime-2.1`, over Gemini Live or self-hosting Kyutai's
-  Moshi on Hugging Face) but **not implemented**. This is where we paused.
-
-## The open decision (why we stopped here)
-
-OpenAI's Realtime API connects the browser directly to OpenAI via WebRTC after
-an initial handshake — our backend relays the SDP offer/answer once (so the
-real `OPENAI_API_KEY` never reaches the browser) but is **not in the audio path
-after that**. That breaks the current per-turn "retrieve relevant memory, then
-respond" pattern the text loop uses, since our backend never sees individual
-turns once the call is live. Two options, not yet chosen:
-
-1. Bake long-term memory into the realtime session's instructions once, at
-   call start, no per-turn retrieval.
-2. Have the browser report transcripts back to a logging-only endpoint after
-   each turn, keeping memory *logging* intact even though retrieval isn't
-   per-turn.
-
-Given long-term memory is empty right now anyway (no consolidation job yet),
-this matters less today than it will later — worth deciding deliberately
-rather than defaulting into it.
+- **Passthrough/AR (ARI)** — per Ryleigh's explicit reprioritization, this is
+  the actual next milestone (ahead of further avatar/VR polish), not yet
+  scoped into code at all.
 
 ## Costs / accounts
 
-- **OpenRouter**: funded (~$11 total), currently used for chat completions,
-  embeddings, and transcription (Deepgram Nova-3). `OPENROUTER_MODEL` is
-  deliberately not defaulted in code — the build plan's Experiment Protocol
-  calls for comparing persistent-memory behavior across models, so it's a
-  per-run choice (currently set to `anthropic/claude-sonnet-5`).
-- **OpenAI**: decision made to fund directly for the Realtime API. Account/key
-  **not yet set up** as of this writing.
+- **OpenRouter**: funded (~$11 total) — chat completions + embeddings
+  (`openai/text-embedding-3-small`). `OPENROUTER_MODEL` deliberately not
+  defaulted in code (currently `anthropic/claude-sonnet-5`) — the build
+  plan's Experiment Protocol calls for comparing persistent-memory behavior
+  across models.
+- **Groq**: free tier — Whisper transcription + Orpheus TTS, the voice
+  fallback path.
+- **xAI**: funded ($10+) — Voice Agent API (`$0.05/min`), the active voice
+  pipeline (`XAI_VOICE_AGENT_ID` points at Sophie's Voice Agent Builder
+  persona).
 - **Hugging Face**: account connected (`Thatbtchryleigh`), unused so far.
-  Kyutai's Moshi (open-weight audio-to-audio model) was scouted as an
-  alternative to a managed realtime API but would mean self-hosting via
-  Inference Endpoints (GPU-hour billing, real infra work), not a quick key
-  swap — set aside in favor of OpenAI.
+- OpenAI is no longer relevant to this project — the Realtime API path was
+  removed as dead code; no account was ever funded for it.
 
-## Currently running (if you want to keep testing without me)
-
-- Vite dev server: `https://localhost:5183` / `https://192.168.12.132:5183`
-  (LAN, for the Quest)
-- Chat server: `localhost:8787` (only reached via the Vite proxy, not exposed
-  directly to the LAN)
-
-## Bugs found and fixed this session (for the record)
+## Bugs found and fixed (for the record)
 
 - Ryleigh's avatar stuck in T-pose: Mixamo FBX exports carry an empty
   reference clip ("Take 001", 0 duration) ahead of the real animation — was
@@ -141,4 +146,8 @@ rather than defaulting into it.
   (piped input ending, Ctrl+D) instead of exiting cleanly.
 - Embeddings originally required a separate `OPENAI_API_KEY` — switched to
   OpenRouter's OpenAI-compatible `/embeddings` endpoint so one funded key
-  covers chat, embeddings, and transcription.
+  covers chat and embeddings.
+- xAI voice: `release()` no-op during in-flight `connect()` left the mic hot
+  with no pending release to stop it (see "Voice (resolved)" above).
+- xAI voice: `PcmPlayer`'s `AudioContext` leaked on every reconnect, capped
+  at ~6 concurrent contexts in-browser (see "Voice (resolved)" above).
