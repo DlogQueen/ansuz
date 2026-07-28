@@ -1,9 +1,10 @@
 # Ansuz
 
-Persistent VR/XR space with a continuously-running AI presence: memory, feedback loop,
-self-improvement, MediaPipe-driven perception. General research space (the specific
-product built on it is called IBI). Reuses IBI's architecture pattern -- MediaPipe
-in-browser -> WebSocket -> structured JSON, not raw video.
+Persistent VR/XR space with a continuously-running AI presence named **Sophie**:
+memory, feedback loop, self-improvement, MediaPipe-driven perception. Ansuz is the
+environment/research space Sophie is embodied in (the specific product built on it is
+called IBI). Reuses IBI's architecture pattern -- MediaPipe in-browser -> WebSocket ->
+structured JSON, not raw video. See `docs/persona.md` for Sophie's character.
 
 ## Status
 
@@ -165,11 +166,11 @@ Design, matching the build plan's Phase 2 intent:
 - **Retrieval state -> light/color**: `Environment.setRetrievalCoherence(0..1)` and
   `Presence.setCoherence(0..1)` shift ambient light and presence color between cold
   scattered blue and warm coherent gold.
-- **Humanoid avatars for both**: Ansuz (`web/src/scene/ansuzAvatar.ts`, Mixamo X
+- **Humanoid avatars for both**: Sophie (`web/src/scene/ansuzAvatar.ts`, Mixamo X
   Bot reskinned with a translucent fresnel-glow `ShaderMaterial`,
   `web/src/materials/glowMaterial.ts`) and Ryleigh (`web/src/scene/ryleighAvatar.ts`,
   Avaturn export). `presence.ts` no longer renders a body -- it originally did (a
-  point cloud), superseded by Ansuz's avatar per the build plan's Phase 2; it now
+  point cloud), superseded by Sophie's avatar per the build plan's Phase 2; it now
   only provides the ambient `PointLight` it always carried, still coherence-driven.
 
 `web/src/main.ts` currently drives memory load and coherence with a slow sine

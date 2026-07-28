@@ -2,17 +2,17 @@ import * as THREE from 'three';
 
 /**
  * Ambient coherence light. Originally a visible point cloud standing in for
- * Ansuz herself -- superseded by her humanoid body (ansuzAvatar.ts) per the
+ * Sophie herself -- superseded by her humanoid body (ansuzAvatar.ts) per the
  * build plan's Phase 2, which calls for a real embodied form rather than an
  * abstract locus. What's left here is the PointLight that cloud carried:
  * still a real, load-bearing light source for the scene (Ryleigh's avatar's
  * PBR material relies on it, alongside environment.ts's hemisphere light --
- * NOT Ansuz's avatar, whose ShaderMaterial is fully custom/unlit and ignores
+ * NOT Sophie's avatar, whose ShaderMaterial is fully custom/unlit and ignores
  * scene lights entirely; her brightness comes only from the glowIntensity
  * uniform in glowMaterial.ts).
  *
  * Raised above head height rather than left at the old point-cloud's
- * position (0, 1.6, -3) -- that height sat inside Ansuz's chest once her
+ * position (0, 1.6, -3) -- that height sat inside Sophie's chest once her
  * avatar occupied the same spot, visible as a bright point glaring through
  * her (unlit, so unaffected by it) translucent body.
  */
