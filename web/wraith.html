@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Wraith Squadron</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+      canvas {
+        display: block;
+      }
+      #ui-root {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+      #ui-root a, #ui-root button {
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui-root"></div>
+    <script type="module" src="/src/wraith/main.ts"></script>
+  </body>
+</html>
