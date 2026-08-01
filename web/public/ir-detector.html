@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>IR Camera Detector</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    color: #eee;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overscroll-behavior: none;
+  }
+  #stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  canvas#view {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    touch-action: none;
+  }
+  video#src { display: none; }
+
+  #hud {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: max(10px, env(safe-area-inset-top)) 12px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    background: linear-gradient(rgba(0,0,0,.55), transparent);
+  }
+  #status {
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 70%;
+    text-shadow: 0 1px 2px #000;
+  }
+  #status b { color: #7CFC9A; }
+  #hotspot-flag {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    white-space: nowrap;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  #hotspot-flag.active {
+    background: #ff3b30;
+    border-color: #ff3b30;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(255,59,48,.7);
+  }
+
+  #controls {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px 14px max(14px, env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, rgba(0,0,0,.75) 40%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .row label {
+    font-size: 12px;
+    width: 78px;
+    flex-shrink: 0;
+    opacity: .85;
+  }
+  input[type="range"] {
+    flex: 1;
+    accent-color: #ff3b30;
+  }
+  .buttons {
+    display: flex;
+    gap: 8px;
+  }
+  button {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button.on {
+    background: #ff3b30;
+    border-color: #ff3b30;
+  }
+  button:active { opacity: .7; }
+
+  #start-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    text-align: center;
+    z-index: 10;
+  }
+  #start-overlay h1 { font-size: 20px; margin: 0; }
+  #start-overlay p { font-size: 14px; opacity: .8; line-height: 1.5; max-width: 420px; margin: 0; }
+  #start-overlay button {
+    flex: none;
+    padding: 14px 28px;
+    font-size: 15px;
+    background: #ff3b30;
+    border-color: #ff3b30;
+  }
+  #error {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    background: #000;
+    z-index: 20;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <video id="src" playsinline muted autoplay></video>
+    <canvas id="view"></canvas>
+  </div>
+
+  <div id="hud">
+    <div id="status">
+      Mode: <b id="mode-label">IR Enhance</b><br>
+      Point at an IR remote or a dark area and press a remote button.
+    </div>
+    <div id="hotspot-flag">no source</div>
+  </div>
+
+  <div id="controls">
+    <div class="row">
+      <label for="sensitivity">Sensitivity</label>
+      <input type="range" id="sensitivity" min="1" max="100" value="55" />
+    </div>
+    <div class="row buttons">
+      <button id="mode-btn" class="on">IR Enhance</button>
+      <button id="flip-btn">Flip Cam</button>
+      <button id="torch-btn">Torch</button>
+      <button id="freeze-btn">Freeze</button>
+    </div>
+  </div>
+
+  <div id="start-overlay">
+    <h1>IR Camera Detector</h1>
+    <p>
+      Most phone camera sensors can pick up a bit of near-infrared light that your
+      eyes can't see, even though the screen shows normal colors. This tool boosts
+      that signal so you can spot IR sources in the dark &mdash; a remote control's
+      IR LED, or the infrared illuminators used by many night-vision security
+      cameras.
+      <br><br>
+      Works best in a dark room, with a phone that doesn't have a strong IR-cut
+      filter. Point it at your TV/AC remote and press a button as a quick test.
+    </p>
+    <button id="start-btn">Start Camera</button>
+  </div>
+
+  <div id="error">
+    <div>
+      <p id="error-text">Camera unavailable.</p>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const video = document.getElementById('src');
+  const canvas = document.getElementById('view');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const startOverlay = document.getElementById('start-overlay');
+  const startBtn = document.getElementById('start-btn');
+  const errorBox = document.getElementById('error');
+  const errorText = document.getElementById('error-text');
+  const modeBtn = document.getElementById('mode-btn');
+  const modeLabel = document.getElementById('mode-label');
+  const flipBtn = document.getElementById('flip-btn');
+  const torchBtn = document.getElementById('torch-btn');
+  const freezeBtn = document.getElementById('freeze-btn');
+  const sensSlider = document.getElementById('sensitivity');
+  const hotspotFlag = document.getElementById('hotspot-flag');
+
+  let stream = null;
+  let track = null;
+  let facingMode = 'environment';
+  let torchOn = false;
+  let enhanceOn = true;
+  let frozen = false;
+  let rafId = null;
+  let hotspotCooldown = 0;
+
+  // Downscaled offscreen buffer for analysis; the visible canvas is drawn at
+  // full video resolution separately so the picture stays sharp.
+  const analysisCanvas = document.createElement('canvas');
+  const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
+  const ANALYSIS_W = 160;
+  const ANALYSIS_H = 120;
+  analysisCanvas.width = ANALYSIS_W;
+  analysisCanvas.height = ANALYSIS_H;
+
+  function fail(message) {
+    errorText.textContent = message;
+    errorBox.style.display = 'flex';
+    startOverlay.style.display = 'none';
+  }
+
+  async function startCamera() {
+    if (!window.isSecureContext) {
+      fail('This needs to be loaded over HTTPS (or localhost) for camera access to work.');
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      fail('Your browser does not support camera access.');
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+      video.srcObject = stream;
+      await video.play();
+      track = stream.getVideoTracks()[0];
+      startOverlay.style.display = 'none';
+      resizeCanvas();
+      if (!rafId) loop();
+    } catch (err) {
+      fail('Could not open the camera: ' + (err && err.message ? err.message : err));
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+      track = null;
+    }
+  }
+
+  function resizeCanvas() {
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
+    canvas.width = vw;
+    canvas.height = vh;
+  }
+
+  async function flipCamera() {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    stopCamera();
+    torchOn = false;
+    torchBtn.classList.remove('on');
+    await startCamera();
+  }
+
+  async function toggleTorch() {
+    if (!track) return;
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if (!caps.torch) {
+      torchBtn.disabled = true;
+      torchBtn.textContent = 'No Torch';
+      return;
+    }
+    try {
+      torchOn = !torchOn;
+      await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+      torchBtn.classList.toggle('on', torchOn);
+    } catch (e) {
+      // Some browsers report the capability but reject the constraint.
+    }
+  }
+
+  function toggleMode() {
+    enhanceOn = !enhanceOn;
+    modeBtn.classList.toggle('on', enhanceOn);
+    modeLabel.textContent = enhanceOn ? 'IR Enhance' : 'Normal';
+  }
+
+  function toggleFreeze() {
+    frozen = !frozen;
+    freezeBtn.classList.toggle('on', frozen);
+    if (!frozen && !rafId) loop();
+  }
+
+  // Colors a luminance value the way a lot of cheap CMOS sensors render
+  // near-IR: a hot white/magenta core once brightness exceeds what a normal
+  // scene would produce at that exposure.
+  function falseColor(v, boost) {
+    const x = Math.min(255, v * boost);
+    if (x < 120) {
+      const t = x / 120;
+      return [t * 10, t * 10, t * 40];
+    } else if (x < 200) {
+      const t = (x - 120) / 80;
+      return [40 + t * 180, 10 + t * 20, 160 + t * 40];
+    } else {
+      const t = (x - 200) / 55;
+      return [220 + t * 35, 30 + t * 220, 200 + t * 55];
+    }
+  }
+
+  function processFrame() {
+    if (video.videoWidth === 0) return;
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      resizeCanvas();
+    }
+
+    if (!enhanceOn) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      hotspotFlag.textContent = 'normal view';
+      hotspotFlag.classList.remove('active');
+      return;
+    }
+
+    // Analyze a small downscaled copy for speed.
+    analysisCtx.drawImage(video, 0, 0, ANALYSIS_W, ANALYSIS_H);
+    const frame = analysisCtx.getImageData(0, 0, ANALYSIS_W, ANALYSIS_H);
+    const data = frame.data;
+
+    const sensitivity = Number(sensSlider.value); // 1-100
+    const boost = 0.6 + (sensitivity / 100) * 2.4; // 0.6 .. 3.0
+    const hotspotThreshold = 250 - sensitivity * 1.6; // higher sensitivity -> lower threshold
+
+    let maxLum = 0;
+    let maxX = 0;
+    let maxY = 0;
+    let hotPixelCount = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      // Weight red/blue higher: consumer sensors with a weak IR-cut filter
+      // tend to leak near-IR into the red channel most, blue somewhat.
+      const lum = r * 0.5 + b * 0.35 + g * 0.15;
+      const out = falseColor(lum, boost);
+      data[i] = out[0];
+      data[i + 1] = out[1];
+      data[i + 2] = out[2];
+
+      if (lum > maxLum) {
+        maxLum = lum;
+        const pix = i / 4;
+        maxX = pix % ANALYSIS_W;
+        maxY = Math.floor(pix / ANALYSIS_W);
+      }
+      if (lum * boost > hotspotThreshold) hotPixelCount++;
+    }
+
+    analysisCtx.putImageData(frame, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(analysisCanvas, 0, 0, canvas.width, canvas.height);
+
+    const detected = maxLum * boost > hotspotThreshold && hotPixelCount >= 2;
+
+    if (detected) {
+      const scaleX = canvas.width / ANALYSIS_W;
+      const scaleY = canvas.height / ANALYSIS_H;
+      const cx = maxX * scaleX;
+      const cy = maxY * scaleY;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = '#ff3b30';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 34, 0, Math.PI * 2);
+      ctx.stroke();
+
+      hotspotFlag.textContent = 'IR source detected';
+      hotspotFlag.classList.add('active');
+
+      if (hotspotCooldown <= 0 && navigator.vibrate) {
+        navigator.vibrate(60);
+        hotspotCooldown = 20;
+      }
+    } else {
+      hotspotFlag.textContent = 'no source';
+      hotspotFlag.classList.remove('active');
+    }
+    if (hotspotCooldown > 0) hotspotCooldown--;
+  }
+
+  function loop() {
+    if (!frozen) {
+      processFrame();
+      rafId = requestAnimationFrame(loop);
+    } else {
+      rafId = null;
+    }
+  }
+
+  startBtn.addEventListener('click', startCamera);
+  modeBtn.addEventListener('click', toggleMode);
+  flipBtn.addEventListener('click', flipCamera);
+  torchBtn.addEventListener('click', toggleTorch);
+  freezeBtn.addEventListener('click', toggleFreeze);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+    } else if (!frozen && stream) {
+      loop();
+    }
+  });
+})();
+</script>
+</body>
+</html>

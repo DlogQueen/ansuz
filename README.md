@@ -156,6 +156,18 @@ renders as a normal 3D scene. On a WebXR-capable browser/headset (e.g. Quest
 Browser reaching this machine over the network via the printed "Network" URL),
 the "ENTER VR" button becomes active.
 
+### IR camera detector (standalone tool)
+
+`web/public/ir-detector.html` is a small, unrelated static page that turns a
+phone's camera into a near-infrared viewer -- point it at a remote control or
+a dark room to spot IR LEDs (remote emitters, night-vision security camera
+illuminators) that are invisible to the naked eye but often leak through a
+phone sensor's IR-cut filter. No build step needed; with `npm run dev` running
+in `web/`, open `/ir-detector.html` on the dev server's printed URL (HTTPS is
+required for camera access on a non-localhost host, which the `basicSsl`
+Vite plugin already provides). It also ships as-is in `npm run build` output
+since anything in `web/public/` is copied to the build root.
+
 Design, matching the build plan's Phase 2 intent:
 
 - **Open expanse, not a room**: no walls or ceiling. A sparse field of points
