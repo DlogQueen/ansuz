@@ -1,14 +1,16 @@
 import { sendMessage, fetchModels } from './api.js';
+import { preloadKokoro, speak } from '../tts/kokoroTts.js';
 
 export interface ChatUI {
   /** Currently selected OpenRouter model slug, e.g. for display elsewhere. */
   getModel(): string;
 }
 
-// Persists the last model picked across reloads within this browser --
-// otherwise every page load would silently fall back to the server's
-// OPENROUTER_MODEL default instead of what was last chosen.
+// Persists the last model picked, and the speak-replies toggle, across
+// reloads within this browser -- otherwise every page load would silently
+// fall back to the server's OPENROUTER_MODEL default / re-enable voice.
 const MODEL_STORAGE_KEY = 'ansuz-openrouter-model';
+const SPEAK_STORAGE_KEY = 'ansuz-speak-replies';
 
 /**
  * Text chat UI: model dropdown (populated live from OpenRouter's catalog via
@@ -42,6 +44,15 @@ export function createChatUI(): ChatUI {
   modelSelect.appendChild(loadingOption);
   modelRow.appendChild(modelLabel);
   modelRow.appendChild(modelSelect);
+
+  const speakLabel = document.createElement('label');
+  speakLabel.style.cssText = 'display: flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer;';
+  const speakCheckbox = document.createElement('input');
+  speakCheckbox.type = 'checkbox';
+  speakCheckbox.checked = localStorage.getItem(SPEAK_STORAGE_KEY) !== 'off';
+  speakLabel.appendChild(speakCheckbox);
+  speakLabel.appendChild(document.createTextNode('🔊 speak replies'));
+  modelRow.appendChild(speakLabel);
 
   const log = document.createElement('div');
   log.style.cssText = `
@@ -107,6 +118,16 @@ export function createChatUI(): ChatUI {
     localStorage.setItem(MODEL_STORAGE_KEY, modelSelect.value);
   });
 
+  // Warms up the on-device TTS model (kokoro-js, ~90MB first load) ahead of
+  // the first reply that needs it, so that reply isn't the one paying the
+  // download/init cost -- only if the user hasn't opted out.
+  if (speakCheckbox.checked) preloadKokoro(appendLine);
+
+  speakCheckbox.addEventListener('change', () => {
+    localStorage.setItem(SPEAK_STORAGE_KEY, speakCheckbox.checked ? 'on' : 'off');
+    if (speakCheckbox.checked) preloadKokoro(appendLine);
+  });
+
   let busy = false;
 
   async function send(): Promise<void> {
@@ -122,6 +143,12 @@ export function createChatUI(): ChatUI {
     try {
       const reply = await sendMessage(message, modelSelect.value);
       appendLine(`sophie: ${reply}`);
+      if (speakCheckbox.checked) {
+        speak(reply, appendLine).catch((error) => {
+          console.error('[chatUI] speak failed:', error);
+          appendLine(`Voice error: ${error instanceof Error ? error.message : String(error)}`);
+        });
+      }
     } catch (error) {
       appendLine(`Error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {

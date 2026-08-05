@@ -183,12 +183,20 @@ retrieval-similarity scores over the WebSocket instead.
 `web/src/chat/chatUI.ts` renders a text chat panel: a model dropdown (populated
 live from `GET /api/models`, OpenRouter's full catalog) plus an input/send row.
 Every entry point -- this panel, `npm run chat` -- goes through OpenRouter only;
-there's no separate voice provider. Requires `scripts/server.ts` running
+there's no separate LLM provider. Requires `scripts/server.ts` running
 (`npm run server`) so the browser has something to proxy `/api/chat` and
 `/api/models` to (see `web/vite.config.ts`).
 
 There's no in-headset text entry yet, so this panel is desktop/browser-testing
 only for now -- same constraint as `OrbitControls` in `main.ts`.
+
+Replies are spoken via **Kokoro-82M** (`web/src/tts/kokoroTts.ts`), an
+on-device TTS model run 100% client-side (transformers.js/onnxruntime-web,
+`kokoro-js`) -- no server, no API key, no per-request cost. Dynamically
+imported so the ~1MB+ of ONNX runtime JS (and the model weights themselves,
+fetched from the Hugging Face Hub on first use) only load once the
+"🔊 speak replies" toggle is on, not on every page load. Toggle state and
+model choice both persist in `localStorage`.
 
 ## Next steps
 
