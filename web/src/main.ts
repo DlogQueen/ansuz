@@ -12,6 +12,7 @@ import { enableXR } from './xr/xrSession.js';
 import { createLocomotion } from './xr/locomotion.js';
 import { createChatUI } from './chat/chatUI.js';
 import { createPerceptionUI } from './perception/perceptionUI.js';
+import { createMemoryStateClient } from './state/memoryStateClient.js';
 
 const scene = new THREE.Scene();
 
@@ -96,20 +97,22 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// --- Demo drivers -----------------------------------------------------
-// Placeholder until Phase 3/4 feed real short-term memory load and
-// retrieval-coherence values in over the WebSocket. Slow oscillation just
-// proves the environment/presence actually respond to state changes.
-let demoT = 0;
+// --- State drivers ----------------------------------------------------
+// The environment renders itself from Sophie's actual memory: short-term
+// volume drives how much exists in the world, and how well the last
+// retrieval matched drives how ordered it is. Falls back to a slow
+// oscillation when the bridge server isn't running -- see
+// state/memoryStateClient.ts.
+const memoryState = createMemoryStateClient();
 
 const timer = new THREE.Timer();
 renderer.setAnimationLoop((timestamp) => {
   timer.update(timestamp);
   const delta = timer.getDelta();
-  demoT += delta;
 
-  const memoryLoad = (Math.sin(demoT * 0.1) + 1) / 2;
-  const coherence = (Math.sin(demoT * 0.07 + 1.5) + 1) / 2;
+  memoryState.update(delta);
+  const memoryLoad = memoryState.getMemoryLoad();
+  const coherence = memoryState.getCoherence();
   environment.setMemoryLoad(memoryLoad);
   environment.setRetrievalCoherence(coherence);
   environment.update(delta);

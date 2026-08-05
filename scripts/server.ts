@@ -5,6 +5,7 @@ import { respond } from '../src/conversation/loop.js';
 import { listModels } from '../src/llm/openrouter.js';
 import { logInteraction } from '../src/memory/shortTermMemory.js';
 import { consolidateMemory } from '../src/memory/consolidation.js';
+import { getMemoryState } from '../src/memory/memoryState.js';
 
 /**
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
@@ -50,6 +51,14 @@ const server = createServer(async (req, res) => {
     if (req.method === 'GET' && req.url === '/api/models') {
       const models = await listModels();
       sendJson(res, 200, { models });
+      return;
+    }
+
+    if (req.method === 'GET' && req.url === '/api/memory-state') {
+      // Polled by the WebXR scene so the environment renders from Sophie's
+      // actual memory rather than a placeholder oscillator -- see
+      // src/memory/memoryState.ts and web/src/state/memoryStateClient.ts.
+      sendJson(res, 200, await getMemoryState());
       return;
     }
 

@@ -3,6 +3,7 @@ import { logInteraction, getRecentMemory } from '../memory/shortTermMemory.js';
 import { retrieveRelevantMemories } from '../memory/longTermMemory.js';
 import { embedText } from '../llm/embeddings.js';
 import { chatCompletion, type ChatMessage } from '../llm/openrouter.js';
+import { recordRetrievalCoherence } from '../memory/memoryState.js';
 import { buildSystemPrompt } from './systemPrompt.js';
 
 /**
@@ -21,6 +22,11 @@ export async function respond(params: { message: string; sessionId?: string; mod
 
   const queryEmbedding = await embedText(params.message);
   const relevant = await retrieveRelevantMemories({ queryEmbedding, matchCount: 5 });
+
+  // Feeds the WebXR scene's coherence signal (see memory/memoryState.ts) --
+  // how well this turn's retrieval actually matched is what the environment
+  // renders itself from.
+  recordRetrievalCoherence(relevant.map((memory) => memory.similarity));
 
   const recent = await getRecentMemory(24);
   const sessionHistory: ChatMessage[] = recent
