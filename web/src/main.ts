@@ -10,16 +10,23 @@ import {
 import { createAnsuzAvatar, type AnsuzAvatar } from './scene/ansuzAvatar.js';
 import { enableXR } from './xr/xrSession.js';
 import { createLocomotion } from './xr/locomotion.js';
-import { createXaiVoiceUI } from './voice/xaiVoiceUI.js';
+import { createChatUI } from './chat/chatUI.js';
 import { createPerceptionUI } from './perception/perceptionUI.js';
+import { createMemoryStateClient } from './state/memoryStateClient.js';
 
 const scene = new THREE.Scene();
 
+// Far plane has to clear the most distant thing in environment.ts -- the gas
+// giant's far limb sits around 800 units out, the nebula shell at 600, stars
+// at 520. Note the far plane clips on view-space depth, not radial distance,
+// so an under-sized far plane punches a hole through the CENTRE of the sky
+// (where depth is greatest) while leaving the periphery intact -- it reads as
+// a dark dome, not as an obviously clipped scene.
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.05,
-  500
+  1500
 );
 camera.position.set(0, 1.6, 2);
 // Desktop preview only -- lets Ryleigh's avatar be visible while testing
@@ -57,7 +64,7 @@ controls.enableDamping = true;
 const environment = createEnvironment(scene);
 const presence = createPresence(scene);
 const locomotion = createLocomotion(renderer.xr, dolly, camera);
-const voiceUI = createXaiVoiceUI(renderer.xr);
+createChatUI();
 createPerceptionUI();
 
 let ryleighAvatar: RyleighAvatar | null = null;
@@ -90,20 +97,22 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// --- Demo drivers -----------------------------------------------------
-// Placeholder until Phase 3/4 feed real short-term memory load and
-// retrieval-coherence values in over the WebSocket. Slow oscillation just
-// proves the environment/presence actually respond to state changes.
-let demoT = 0;
+// --- State drivers ----------------------------------------------------
+// The environment renders itself from Sophie's actual memory: short-term
+// volume drives how much exists in the world, and how well the last
+// retrieval matched drives how ordered it is. Falls back to a slow
+// oscillation when the bridge server isn't running -- see
+// state/memoryStateClient.ts.
+const memoryState = createMemoryStateClient();
 
 const timer = new THREE.Timer();
 renderer.setAnimationLoop((timestamp) => {
   timer.update(timestamp);
   const delta = timer.getDelta();
-  demoT += delta;
 
-  const memoryLoad = (Math.sin(demoT * 0.1) + 1) / 2;
-  const coherence = (Math.sin(demoT * 0.07 + 1.5) + 1) / 2;
+  memoryState.update(delta);
+  const memoryLoad = memoryState.getMemoryLoad();
+  const coherence = memoryState.getCoherence();
   environment.setMemoryLoad(memoryLoad);
   environment.setRetrievalCoherence(coherence);
   environment.update(delta);
@@ -112,7 +121,6 @@ renderer.setAnimationLoop((timestamp) => {
   ansuzAvatar?.update(delta);
   ansuzAvatar?.setCoherence(coherence);
   locomotion.update(delta);
-  voiceUI.update();
 
   controls.update();
   renderer.render(scene, camera);

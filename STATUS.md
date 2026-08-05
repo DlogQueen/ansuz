@@ -4,6 +4,18 @@ Snapshot updated after a debug pass (Opus-reviewed) and cleanup on top of the
 Phase 2 voice/avatar work. Not a permanent doc — check git history / README.md
 for anything that drifts from this over time.
 
+**2026-08-05 update:** the xAI/Groq voice pipeline described below (voice
+section, and the "xAI voice" bug entries at the bottom) has been removed
+entirely — xAI and Groq are no longer used anywhere in this project. Chat is
+OpenRouter-only now, via a text panel in the web UI (`web/src/chat/`) with a
+model dropdown fed by `GET /api/models`, replacing the old push-to-talk voice
+button. Replies are spoken via on-device TTS (Kokoro-82M, `web/src/tts/`) --
+no cloud TTS provider, runs entirely client-side. There is still no speech
+*input* and no in-headset text entry — see README.md's "Talking to Sophie in
+the browser" section for the current state. The rest of this file (memory
+backend, WebXR scene, avatars) is unaffected and still accurate as of the
+date above.
+
 ## What's fully working and verified
 
 **Backend / memory (Phase 0/1)**

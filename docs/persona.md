@@ -20,7 +20,8 @@ whatever conversational/voice layer she eventually speaks through (Phase 4).
 
 ## Where this plugs in
 
-- **System prompt seed** for the Phase 4 conversational loop (and any voice agent,
-  e.g. xAI's Voice Agent API) — this is the instructions block for Sophie specifically.
+- **System prompt seed** for the conversational loop (`src/conversation/systemPrompt.ts`),
+  used by every entry point that talks to her via OpenRouter — this is the
+  instructions block for Sophie specifically.
 - **Consolidation criteria** for the Phase 1 memory job: "what matters enough to
   promote to long-term" should be judged against Sophie's mission, not generic importance.
