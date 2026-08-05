@@ -2,9 +2,7 @@ import 'dotenv/config';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { respond } from '../src/conversation/loop.js';
-import { transcribeAudioGroq } from '../src/llm/groqTranscription.js';
-import { synthesizeSpeechGroq } from '../src/llm/groqTts.js';
-import { mintVoiceSession } from '../src/llm/xaiVoice.js';
+import { listModels } from '../src/llm/openrouter.js';
 import { logInteraction } from '../src/memory/shortTermMemory.js';
 import { consolidateMemory } from '../src/memory/consolidation.js';
 
@@ -12,10 +10,8 @@ import { consolidateMemory } from '../src/memory/consolidation.js';
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
  * server-side-only work: the conversation loop and turn logging (hold the
  * Supabase service-role key -- see src/lib/supabaseClient.ts's warning never
- * to import that into browser-facing code), transcription + TTS (hold
- * GROQ_API_KEY -- Whisper + Orpheus, fast and free-tier for personal use),
- * and xAI voice session token minting (holds XAI_API_KEY -- see
- * src/llm/xaiVoice.ts, this is the active voice pipeline), and a WebSocket
+ * to import that into browser-facing code), the OpenRouter model catalog
+ * (holds OPENROUTER_API_KEY -- see src/llm/openrouter.ts), and a WebSocket
  * endpoint (/api/perception) ingesting MediaPipe hand-tracking
  * events from the browser. Not exposed to the LAN directly: web/vite.config.ts
  * proxies /api here so the browser only ever talks to Vite's own (HTTPS)
@@ -41,43 +37,19 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
 const server = createServer(async (req, res) => {
   try {
     if (req.method === 'POST' && req.url === '/api/chat') {
-      const body = await readJsonBody<{ message: string; sessionId?: string }>(req);
+      const body = await readJsonBody<{ message: string; sessionId?: string; model?: string }>(req);
       if (!body.message || typeof body.message !== 'string') {
         sendJson(res, 400, { error: 'message (string) is required' });
         return;
       }
-      const reply = await respond({ message: body.message, sessionId: body.sessionId });
+      const reply = await respond({ message: body.message, sessionId: body.sessionId, model: body.model });
       sendJson(res, 200, { reply });
       return;
     }
 
-    if (req.method === 'POST' && req.url === '/api/transcribe') {
-      const body = await readJsonBody<{ audio: string; format: string }>(req);
-      if (!body.audio || !body.format) {
-        sendJson(res, 400, { error: 'audio (base64 string) and format are required' });
-        return;
-      }
-      const text = await transcribeAudioGroq(body.audio, body.format);
-      sendJson(res, 200, { text });
-      return;
-    }
-
-    if (req.method === 'POST' && req.url === '/api/tts') {
-      const body = await readJsonBody<{ text: string }>(req);
-      if (!body.text) {
-        sendJson(res, 400, { error: 'text is required' });
-        return;
-      }
-      const audio = await synthesizeSpeechGroq(body.text);
-      sendJson(res, 200, { audio: audio.toString('base64') });
-      return;
-    }
-
-    if (req.method === 'POST' && req.url === '/api/voice-session') {
-      // Mints a token only -- the browser opens the WebSocket itself (mic +
-      // playback have to live client-side). See src/llm/xaiVoice.ts.
-      const session = await mintVoiceSession();
-      sendJson(res, 200, session);
+    if (req.method === 'GET' && req.url === '/api/models') {
+      const models = await listModels();
+      sendJson(res, 200, { models });
       return;
     }
 
@@ -86,21 +58,6 @@ const server = createServer(async (req, res) => {
       // -- handy right after a test session instead of waiting for it.
       const result = await consolidateMemory({ force: true });
       sendJson(res, 200, result);
-      return;
-    }
-
-    if (req.method === 'POST' && req.url === '/api/log-turn') {
-      const body = await readJsonBody<{
-        role: 'user' | 'assistant';
-        content: string;
-        sessionId?: string;
-      }>(req);
-      if (!body.role || !body.content) {
-        sendJson(res, 400, { error: 'role and content are required' });
-        return;
-      }
-      await logInteraction({ role: body.role, content: body.content, sessionId: body.sessionId });
-      sendJson(res, 200, { ok: true });
       return;
     }
 

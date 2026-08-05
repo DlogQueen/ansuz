@@ -14,7 +14,7 @@ import { buildSystemPrompt } from './systemPrompt.js';
  * -- see README) has actually promoted something from short-term into it;
  * that's expected early on, not a bug.
  */
-export async function respond(params: { message: string; sessionId?: string }): Promise<string> {
+export async function respond(params: { message: string; sessionId?: string; model?: string }): Promise<string> {
   const sessionId = params.sessionId ?? randomUUID();
 
   await logInteraction({ role: 'user', content: params.message, sessionId });
@@ -35,7 +35,7 @@ export async function respond(params: { message: string; sessionId?: string }): 
     ...sessionHistory,
   ];
 
-  const reply = await chatCompletion(messages);
+  const reply = await chatCompletion(messages, params.model);
 
   await logInteraction({ role: 'assistant', content: reply, sessionId });
 

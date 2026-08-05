@@ -10,7 +10,7 @@ import {
 import { createAnsuzAvatar, type AnsuzAvatar } from './scene/ansuzAvatar.js';
 import { enableXR } from './xr/xrSession.js';
 import { createLocomotion } from './xr/locomotion.js';
-import { createXaiVoiceUI } from './voice/xaiVoiceUI.js';
+import { createChatUI } from './chat/chatUI.js';
 import { createPerceptionUI } from './perception/perceptionUI.js';
 
 const scene = new THREE.Scene();
@@ -57,7 +57,7 @@ controls.enableDamping = true;
 const environment = createEnvironment(scene);
 const presence = createPresence(scene);
 const locomotion = createLocomotion(renderer.xr, dolly, camera);
-const voiceUI = createXaiVoiceUI(renderer.xr);
+createChatUI();
 createPerceptionUI();
 
 let ryleighAvatar: RyleighAvatar | null = null;
@@ -112,7 +112,6 @@ renderer.setAnimationLoop((timestamp) => {
   ansuzAvatar?.update(delta);
   ansuzAvatar?.setCoherence(coherence);
   locomotion.update(delta);
-  voiceUI.update();
 
   controls.update();
   renderer.render(scene, camera);
