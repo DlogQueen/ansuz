@@ -195,8 +195,13 @@ on-device TTS model run 100% client-side (transformers.js/onnxruntime-web,
 `kokoro-js`) -- no server, no API key, no per-request cost. Dynamically
 imported so the ~1MB+ of ONNX runtime JS (and the model weights themselves,
 fetched from the Hugging Face Hub on first use) only load once the
-"🔊 speak replies" toggle is on, not on every page load. Toggle state and
-model choice both persist in `localStorage`.
+"🔊 speak replies" toggle is on, not on every page load.
+
+A **voice picker** sits next to the model dropdown, grouped by accent
+(American/British, female/male -- Kokoro's prefix convention is `a`/`b` for
+accent and `f`/`m` for gender). Defaults to `af_heart`, Kokoro's
+highest-graded American-female voice. Model, voice, and the speak toggle all
+persist in `localStorage`.
 
 ## Next steps
 

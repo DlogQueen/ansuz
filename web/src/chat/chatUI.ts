@@ -1,5 +1,5 @@
 import { sendMessage, fetchModels } from './api.js';
-import { preloadKokoro, speak } from '../tts/kokoroTts.js';
+import { preloadKokoro, speak, VOICE_GROUPS, DEFAULT_VOICE } from '../tts/kokoroTts.js';
 
 export interface ChatUI {
   /** Currently selected OpenRouter model slug, e.g. for display elsewhere. */
@@ -11,6 +11,7 @@ export interface ChatUI {
 // fall back to the server's OPENROUTER_MODEL default / re-enable voice.
 const MODEL_STORAGE_KEY = 'ansuz-openrouter-model';
 const SPEAK_STORAGE_KEY = 'ansuz-speak-replies';
+const VOICE_STORAGE_KEY = 'ansuz-tts-voice';
 
 /**
  * Text chat UI: model dropdown (populated live from OpenRouter's catalog via
@@ -54,6 +55,41 @@ export function createChatUI(): ChatUI {
   speakLabel.appendChild(document.createTextNode('🔊 speak replies'));
   modelRow.appendChild(speakLabel);
 
+  // Voice/accent picker. Kokoro ships American and British voices of both
+  // genders; grouping by accent makes the choice legible at a glance.
+  const voiceRow = document.createElement('div');
+  voiceRow.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+  const voiceLabel = document.createElement('label');
+  voiceLabel.textContent = 'voice:';
+  voiceLabel.style.cssText = 'opacity: 0.8; white-space: nowrap;';
+  const voiceSelect = document.createElement('select');
+  voiceSelect.style.cssText = `
+    flex: 1; background: #12172a; color: #cfd8ff; border: 1px solid #cfd8ff55;
+    border-radius: 6px; padding: 4px 8px; font: inherit;
+  `;
+  for (const group of VOICE_GROUPS) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = group.label;
+    for (const voice of group.voices) {
+      const option = document.createElement('option');
+      option.value = voice.id;
+      option.textContent = voice.name;
+      optgroup.appendChild(option);
+    }
+    voiceSelect.appendChild(optgroup);
+  }
+  const storedVoice = localStorage.getItem(VOICE_STORAGE_KEY);
+  voiceSelect.value = storedVoice ?? DEFAULT_VOICE;
+  // Guard against a stored id that no longer exists in VOICE_GROUPS -- an
+  // unmatched assignment above leaves value as '', which would send an
+  // invalid voice to Kokoro.
+  if (!voiceSelect.value) voiceSelect.value = DEFAULT_VOICE;
+  voiceSelect.addEventListener('change', () => {
+    localStorage.setItem(VOICE_STORAGE_KEY, voiceSelect.value);
+  });
+  voiceRow.appendChild(voiceLabel);
+  voiceRow.appendChild(voiceSelect);
+
   const log = document.createElement('div');
   log.style.cssText = `
     max-height: 30vh; overflow-y: auto; background: #12172acc;
@@ -79,6 +115,7 @@ export function createChatUI(): ChatUI {
   inputRow.appendChild(sendButton);
 
   container.appendChild(modelRow);
+  container.appendChild(voiceRow);
   container.appendChild(log);
   container.appendChild(inputRow);
 
@@ -144,7 +181,7 @@ export function createChatUI(): ChatUI {
       const reply = await sendMessage(message, modelSelect.value);
       appendLine(`sophie: ${reply}`);
       if (speakCheckbox.checked) {
-        speak(reply, appendLine).catch((error) => {
+        speak(reply, voiceSelect.value, appendLine).catch((error) => {
           console.error('[chatUI] speak failed:', error);
           appendLine(`Voice error: ${error instanceof Error ? error.message : String(error)}`);
         });

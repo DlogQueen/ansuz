@@ -15,7 +15,64 @@ import type { KokoroTTS as KokoroTTSType } from 'kokoro-js';
 const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 // "af_heart" is Kokoro's flagship/highest-graded American-female voice --
 // closest fit to Sophie's persona (systemPrompt.ts: a woman in her 30s).
-const VOICE = 'af_heart';
+// Overridable per call via the voice picker in chat/chatUI.ts.
+export const DEFAULT_VOICE = 'af_heart';
+
+/**
+ * Kokoro's built-in voices, grouped for the picker. Prefix encodes
+ * accent+gender: a=American, b=British; f=female, m=male. Grades are
+ * Kokoro's own quality ratings -- af_heart and af_bella are the strongest.
+ */
+export const VOICE_GROUPS: ReadonlyArray<{ label: string; voices: ReadonlyArray<{ id: string; name: string }> }> = [
+  {
+    label: 'American — female',
+    voices: [
+      { id: 'af_heart', name: 'Heart (best quality)' },
+      { id: 'af_bella', name: 'Bella (high quality)' },
+      { id: 'af_nicole', name: 'Nicole (soft/ASMR)' },
+      { id: 'af_aoede', name: 'Aoede' },
+      { id: 'af_kore', name: 'Kore' },
+      { id: 'af_sarah', name: 'Sarah' },
+      { id: 'af_nova', name: 'Nova' },
+      { id: 'af_sky', name: 'Sky' },
+      { id: 'af_alloy', name: 'Alloy' },
+      { id: 'af_jessica', name: 'Jessica' },
+      { id: 'af_river', name: 'River' },
+    ],
+  },
+  {
+    label: 'British — female',
+    voices: [
+      { id: 'bf_emma', name: 'Emma' },
+      { id: 'bf_isabella', name: 'Isabella' },
+      { id: 'bf_alice', name: 'Alice' },
+      { id: 'bf_lily', name: 'Lily' },
+    ],
+  },
+  {
+    label: 'American — male',
+    voices: [
+      { id: 'am_michael', name: 'Michael' },
+      { id: 'am_fenrir', name: 'Fenrir' },
+      { id: 'am_puck', name: 'Puck' },
+      { id: 'am_adam', name: 'Adam' },
+      { id: 'am_echo', name: 'Echo' },
+      { id: 'am_eric', name: 'Eric' },
+      { id: 'am_liam', name: 'Liam' },
+      { id: 'am_onyx', name: 'Onyx' },
+      { id: 'am_santa', name: 'Santa' },
+    ],
+  },
+  {
+    label: 'British — male',
+    voices: [
+      { id: 'bm_george', name: 'George' },
+      { id: 'bm_daniel', name: 'Daniel' },
+      { id: 'bm_fable', name: 'Fable' },
+      { id: 'bm_lewis', name: 'Lewis' },
+    ],
+  },
+];
 
 let ttsPromise: Promise<KokoroTTSType> | null = null;
 
@@ -45,9 +102,12 @@ export function preloadKokoro(onStatus?: (text: string) => void): void {
 let currentAudio: HTMLAudioElement | null = null;
 
 /** Generates and plays speech for `text`, cutting off whatever's currently playing (mirrors the old chatClient.speak() behavior). */
-export async function speak(text: string, onStatus?: (text: string) => void): Promise<void> {
+export async function speak(text: string, voice?: string, onStatus?: (text: string) => void): Promise<void> {
   const tts = await loadTts(onStatus);
-  const audio = await tts.generate(text, { voice: VOICE });
+  // Cast: kokoro-js types `voice` as a union of its voice keys, but the value
+  // here comes from the picker (a plain string). VOICE_GROUPS above is the
+  // authority on which ids are valid.
+  const audio = await tts.generate(text, { voice: (voice ?? DEFAULT_VOICE) as never });
   const url = URL.createObjectURL(audio.toBlob());
 
   currentAudio?.pause();
