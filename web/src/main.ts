@@ -15,11 +15,17 @@ import { createPerceptionUI } from './perception/perceptionUI.js';
 
 const scene = new THREE.Scene();
 
+// Far plane has to clear the most distant thing in environment.ts -- the gas
+// giant's far limb sits around 800 units out, the nebula shell at 600, stars
+// at 520. Note the far plane clips on view-space depth, not radial distance,
+// so an under-sized far plane punches a hole through the CENTRE of the sky
+// (where depth is greatest) while leaving the periphery intact -- it reads as
+// a dark dome, not as an obviously clipped scene.
 const camera = new THREE.PerspectiveCamera(
   60,
   window.innerWidth / window.innerHeight,
   0.05,
-  500
+  1500
 );
 camera.position.set(0, 1.6, 2);
 // Desktop preview only -- lets Ryleigh's avatar be visible while testing
