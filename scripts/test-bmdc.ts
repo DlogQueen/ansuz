@@ -4,6 +4,8 @@ import {
   parseInboundMessage,
   classifyInboundKeyword,
   twimlResponse,
+  getTwilioCredentials,
+  canVerifyTwilioWebhooks,
 } from '../src/integrations/twilio.js';
 import { verifyStripeSignature } from '../src/integrations/stripe.js';
 import { extractJson } from '../src/crew/agent.js';
@@ -56,6 +58,64 @@ check('keyword: "stop by later" is a reply, not an opt-out', classifyInboundKeyw
 
 check('twiml: empty response', twimlResponse() === '<?xml version="1.0" encoding="UTF-8"?><Response/>');
 check('twiml: escapes markup', twimlResponse('a & b <c>').includes('a &amp; b &lt;c&gt;'));
+
+// --- Twilio credential shapes -----------------------------------------------
+// An SK... api key sid in TWILIO_ACCOUNT_SID authenticates fine but 401s on
+// every request, because the REST path needs the AC... sid. Easy mistake (both
+// are "the Twilio SID" in casual use), so it's caught with a named error.
+function withEnv(vars: Record<string, string | undefined>, fn: () => unknown): unknown {
+  const saved = Object.keys(vars).map((key) => [key, process.env[key]] as const);
+  for (const [key, value] of Object.entries(vars)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+  try {
+    return fn();
+  } finally {
+    for (const [key, value] of saved) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+function credentialCase(name: string, vars: Record<string, string | undefined>, expect: 'ok' | RegExp): void {
+  withEnv({ ...vars }, () => {
+    try {
+      const credentials = getTwilioCredentials();
+      check(name, expect === 'ok' && credentials.accountSid.startsWith('AC'));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      check(name, expect !== 'ok' && expect.test(message));
+    }
+  });
+}
+
+const BASE = {
+  TWILIO_ACCOUNT_SID: 'AC00000000000000000000000000000000',
+  TWILIO_AUTH_TOKEN: undefined,
+  TWILIO_API_KEY_SID: undefined,
+  TWILIO_API_KEY_SECRET: undefined,
+  TWILIO_FROM_NUMBER: '+15551234567',
+  TWILIO_MESSAGING_SERVICE_SID: undefined,
+};
+
+credentialCase('twilio creds: api key pair accepted', { ...BASE, TWILIO_API_KEY_SID: 'SK1', TWILIO_API_KEY_SECRET: 's' }, 'ok');
+credentialCase('twilio creds: auth token accepted', { ...BASE, TWILIO_AUTH_TOKEN: 't' }, 'ok');
+credentialCase('twilio creds: SK in ACCOUNT_SID rejected by name', { ...BASE, TWILIO_ACCOUNT_SID: 'SKf55d18ef', TWILIO_AUTH_TOKEN: 't' }, /must be the account SID starting with "AC"/);
+credentialCase('twilio creds: api key sid without secret rejected', { ...BASE, TWILIO_API_KEY_SID: 'SK1' }, /TWILIO_API_KEY_SECRET is missing/);
+credentialCase('twilio creds: no auth at all rejected', { ...BASE }, /Set either TWILIO_API_KEY_SID/);
+credentialCase('twilio creds: missing account sid rejected', { ...BASE, TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: 't' }, /TWILIO_ACCOUNT_SID \(AC\.\.\.\) must be set/);
+credentialCase('twilio creds: no sender rejected', { ...BASE, TWILIO_AUTH_TOKEN: 't', TWILIO_FROM_NUMBER: undefined }, /TWILIO_FROM_NUMBER or TWILIO_MESSAGING_SERVICE_SID/);
+
+// An api-key-only setup can send but cannot verify inbound webhooks, since
+// Twilio signs those with the account auth token.
+withEnv({ TWILIO_AUTH_TOKEN: undefined }, () => {
+  check('twilio: webhook verification unavailable without auth token', !canVerifyTwilioWebhooks());
+});
+withEnv({ TWILIO_AUTH_TOKEN: 'present' }, () => {
+  check('twilio: webhook verification available with auth token', canVerifyTwilioWebhooks());
+});
 
 // --- Stripe signature -------------------------------------------------------
 const secret = 'whsec_test';
