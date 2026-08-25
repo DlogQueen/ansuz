@@ -173,10 +173,18 @@ on `stripe_session_id` so Stripe's own retries are idempotent.
 - **Social publishing is not wired.** Posts are drafted into `social_posts` with
   status `draft` and stay there. Publishing reaches an audience the crew can't
   take a message back from, so it's left behind a human step.
-- **Nothing has been run against live Twilio/Stripe credentials yet.** The
-  offline logic is tested (`npm run test:bmdc`) and everything typechecks, but
-  the first real cycle is still unverified end-to-end — treat the initial run as
-  a test, on Stripe test keys, with one lead you control.
+- **Twilio has not been exercised against a real number yet.** Credentials and
+  signature logic are covered offline (`npm run test:bmdc`), but no message has
+  actually been sent or received. Treat the first campaign as a test, with one
+  lead you control.
+- **Stripe is verified live** (test mode): `createOfferProducts()` and
+  `createCheckoutSession()` were run against the real API — product, price,
+  payment link and session all created, and the `lead_id`/`campaign_id`/
+  `offer_id` metadata round-tripped intact off the fetched session. That last
+  part is what revenue attribution depends on: without it every sale lands
+  unattributed and campaign fitness is meaningless. What remains unverified is
+  a real `checkout.session.completed` webhook reaching `handleStripeEvent()`
+  and booking a row in `sales` — that needs the public tunnel up.
 - **Lead sourcing is manual.** There's no inbound landing page or opt-in form
   yet; leads arrive via the CLI or by texting the number first.
 - **Voice campaigns** are in the schema (`channel: 'voice'`) but unimplemented.
