@@ -9,6 +9,8 @@
     "chat": "tsx scripts/chat.ts",
     "server": "tsx scripts/server.ts",
     "consolidate": "tsx scripts/consolidate.ts",
+    "bmdc": "tsx scripts/bmdc.ts",
+    "test:bmdc": "tsx scripts/test-bmdc.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

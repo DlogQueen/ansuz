@@ -7,6 +7,14 @@ import { synthesizeSpeechGroq } from '../src/llm/groqTts.js';
 import { mintVoiceSession } from '../src/llm/xaiVoice.js';
 import { logInteraction } from '../src/memory/shortTermMemory.js';
 import { consolidateMemory } from '../src/memory/consolidation.js';
+import {
+  parseInboundMessage,
+  twimlResponse,
+  verifyTwilioSignature,
+} from '../src/integrations/twilio.js';
+import { verifyStripeSignature } from '../src/integrations/stripe.js';
+import { handleInboundMessage, handleStripeEvent } from '../src/crew/pipeline.js';
+import { runCycle } from '../src/crew/orchestrator.js';
 
 /**
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
@@ -36,6 +44,20 @@ async function readJsonBody<T>(req: IncomingMessage): Promise<T> {
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(body));
+}
+
+/**
+ * The exact public URL Twilio was configured to call -- what its signature is
+ * computed over. Derived from BMDC_PUBLIC_URL (the tunnel/domain Twilio points
+ * at) rather than the Host header, since the header is attacker-controlled and
+ * this value is half of a signature check.
+ */
+function publicUrlFor(path: string): string {
+  const base = process.env.BMDC_PUBLIC_URL;
+  if (!base) {
+    throw new Error('BMDC_PUBLIC_URL must be set to verify Twilio webhook signatures.');
+  }
+  return `${base.replace(/\/$/, '')}${path}`;
 }
 
 const server = createServer(async (req, res) => {
@@ -101,6 +123,63 @@ const server = createServer(async (req, res) => {
       }
       await logInteraction({ role: body.role, content: body.content, sessionId: body.sessionId });
       sendJson(res, 200, { ok: true });
+      return;
+    }
+
+    // ---- BMDC (Byte Me Dev Crew) -----------------------------------------
+    // Both webhooks below verify provider signatures before touching any
+    // state. These endpoints are publicly reachable by design (Twilio and
+    // Stripe have to reach them), so the signature *is* the authentication --
+    // an unverified request must never reach the crew's decision loop.
+
+    if (req.method === 'POST' && req.url === '/api/twilio/inbound') {
+      const raw = await readTextBody(req);
+      const params = Object.fromEntries(new URLSearchParams(raw));
+
+      const valid = verifyTwilioSignature({
+        signature: req.headers['x-twilio-signature'] as string | undefined,
+        url: publicUrlFor('/api/twilio/inbound'),
+        body: params,
+      });
+      if (!valid) {
+        console.warn('[bmdc] rejected inbound message with an invalid Twilio signature.');
+        res.writeHead(403);
+        res.end();
+        return;
+      }
+
+      const inbound = parseInboundMessage(params);
+      const result = await handleInboundMessage(inbound);
+      res.writeHead(200, { 'Content-Type': 'text/xml' });
+      res.end(twimlResponse(result.reply ?? undefined));
+      return;
+    }
+
+    if (req.method === 'POST' && req.url === '/api/stripe/webhook') {
+      // Stripe signs the raw bytes -- parsing and re-serializing would break
+      // verification, so the raw string is what gets passed through.
+      const rawBody = await readTextBody(req);
+      let event;
+      try {
+        event = verifyStripeSignature({
+          rawBody,
+          signatureHeader: req.headers['stripe-signature'] as string | undefined,
+        });
+      } catch (error) {
+        console.warn('[bmdc] rejected Stripe webhook:', error instanceof Error ? error.message : error);
+        res.writeHead(400);
+        res.end();
+        return;
+      }
+
+      const result = await handleStripeEvent(event);
+      sendJson(res, 200, { received: true, handled: result.handled });
+      return;
+    }
+
+    if (req.method === 'POST' && req.url === '/api/bmdc/cycle') {
+      const result = await runCycle();
+      sendJson(res, 200, result);
       return;
     }
 
@@ -191,3 +270,25 @@ setInterval(() => {
       console.error('[consolidation] run failed:', error instanceof Error ? error.message : error);
     });
 }, CONSOLIDATION_INTERVAL_MS);
+
+// BMDC's adapt loop, off unless BMDC_CYCLE_MINUTES is set. Default-off on
+// purpose: a cycle spends model credits and sends real messages to real
+// people, so running it has to be something you turned on, not something that
+// started happening because you booted the server.
+const cycleMinutes = Number(process.env.BMDC_CYCLE_MINUTES ?? 0);
+if (Number.isFinite(cycleMinutes) && cycleMinutes > 0) {
+  console.log(`[bmdc] adapt loop enabled — one cycle every ${cycleMinutes} minute(s).`);
+  setInterval(() => {
+    runCycle()
+      .then((result) => {
+        console.log(
+          `[bmdc] cycle ${result.cycleId}: ${result.campaignsLaunched} campaign(s), ` +
+            `${result.messagesSent} message(s) sent. ${result.assessment}`
+        );
+        if (result.errors.length > 0) console.error('[bmdc] cycle errors:', result.errors.join('; '));
+      })
+      .catch((error) => {
+        console.error('[bmdc] cycle failed:', error instanceof Error ? error.message : error);
+      });
+  }, cycleMinutes * 60 * 1000);
+}

@@ -5,6 +5,12 @@ export type MemoryCategory =
   | 'built-artifact'
   | 'self-repair-success'
   | 'self-repair-failure'
+  // BMDC's operational learnings, added in 0002_bmdc_crew.sql -- keep this
+  // union in step with that migration's check constraint.
+  | 'market-gap'
+  | 'campaign-result'
+  | 'sales-outcome'
+  | 'crew-spawn'
   | 'other';
 
 export interface ShortTermMemoryEntry {

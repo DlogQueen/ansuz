@@ -116,6 +116,8 @@ src/lib/                -- Supabase client setup
 src/memory/             -- short-term / long-term memory read+write + types
 src/llm/                -- OpenRouter chat completion + embeddings clients
 src/conversation/       -- the conversation loop (retrieve -> log -> generate -> log)
+src/crew/               -- BMDC: the agentic sales crew (see docs/bmdc.md)
+src/integrations/       -- Twilio and Stripe REST clients + webhook verification
 scripts/                -- one-off scripts (connection check, chat REPL, etc.)
 web/                    -- WebXR scene shell (Three.js + Vite)
 ```
@@ -177,6 +179,24 @@ Design, matching the build plan's Phase 2 intent:
 oscillation so the effect is visible before real data exists -- that's a
 placeholder for Phase 3/4, which will feed it actual short-term memory volume and
 retrieval-similarity scores over the WebSocket instead.
+
+## BMDC — Byte Me Dev Crew
+
+An adaptive, self-replicating sales crew running on this repo's memory backend:
+three agents (manager, market researcher, social) that find market gaps, price
+offers, run SMS outreach through Twilio, and close through Stripe. Its learnings
+go into the same `long_term_memory` store Sophie uses, so the crew starts each
+cycle from what the last one found out.
+
+```sh
+npm run bmdc -- seed                 # create the founding three agents
+npm run bmdc -- cycle --dry-run      # plan + draft without sending anything
+npm run bmdc -- status               # roster, gaps, campaigns, revenue
+```
+
+Needs `supabase/migrations/0002_bmdc_crew.sql` applied and the BMDC block in
+`.env` filled in. Full setup, the adapt loop, the replication caps, and the
+consent model: **[docs/bmdc.md](docs/bmdc.md)**.
 
 ## Next steps
 
