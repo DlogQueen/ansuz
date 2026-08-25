@@ -1,6 +1,10 @@
-import { chatCompletion, type ChatMessage } from '../llm/openrouter.js';
-import { embedText } from '../llm/embeddings.js';
-import { retrieveRelevantMemories, storeLongTermMemory } from '../memory/longTermMemory.js';
+import { chatCompletion, isEmbeddingsAvailable, type ChatMessage } from '../llm/chat.js';
+import { embedText, tryEmbedText } from '../llm/embeddings.js';
+import {
+  retrieveRecentMemories,
+  retrieveRelevantMemories,
+  storeLongTermMemory,
+} from '../memory/longTermMemory.js';
 import type { MemoryCategory } from '../memory/types.js';
 import { CREW_CHARTER } from './roster.js';
 import { recordRun } from './store.js';
@@ -109,12 +113,24 @@ async function recallForAgent(
   query: string
 ): Promise<Array<{ summary: string; category: string }>> {
   try {
-    const queryEmbedding = await embedText(query);
-    const memories = await retrieveRelevantMemories({ queryEmbedding, matchCount: 6, minImportance: 2 });
+    // No embeddings endpoint on this provider (Groq) -- fall back to recent
+    // important memories rather than skipping recall entirely.
+    if (!isEmbeddingsAvailable()) {
+      const memories = await retrieveRecentMemories({ matchCount: 6, minImportance: 3 });
+      return memories.map((memory) => ({ summary: memory.summary, category: memory.category }));
+    }
+
+    const queryEmbedding = await tryEmbedText(query);
+    // Key configured but the call failed (unfunded account, provider outage):
+    // drop to the recency fallback rather than all the way to memoryless.
+    const memories = queryEmbedding
+      ? await retrieveRelevantMemories({ queryEmbedding, matchCount: 6, minImportance: 2 })
+      : await retrieveRecentMemories({ matchCount: 6, minImportance: 3 });
     return memories.map((memory) => ({ summary: memory.summary, category: memory.category }));
   } catch (error) {
-    // Retrieval is an enhancement, not a precondition -- an embeddings hiccup
-    // should degrade the agent to memoryless, not fail the whole cycle.
+    // Retrieval is an enhancement, not a precondition -- if even the fallback
+    // fails (database trouble), the agent runs memoryless rather than the
+    // whole cycle dying.
     console.warn('[crew] memory recall failed, continuing without it:', error instanceof Error ? error.message : error);
     return [];
   }
@@ -134,7 +150,13 @@ export async function rememberLearning(params: {
   metadata?: Record<string, unknown>;
 }): Promise<void> {
   try {
-    const embedding = await embedText(params.summary);
+    // Store the learning either way. Without an embedding it's reachable only
+    // by the recency fallback, but an unretrievable-by-vector memory beats a
+    // discarded one -- and it becomes searchable the moment embeddings are
+    // available again and something backfills it. tryEmbedText covers the
+    // configured-but-failing case (an unfunded OpenRouter key returns 402),
+    // which isEmbeddingsAvailable() alone can't see.
+    const embedding = isEmbeddingsAvailable() ? await tryEmbedText(params.summary) : null;
     await storeLongTermMemory({
       summary: params.summary,
       embedding,
