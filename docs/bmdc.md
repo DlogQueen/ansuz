@@ -190,3 +190,8 @@ on `stripe_session_id` so Stripe's own retries are idempotent.
 - **Voice campaigns** are in the schema (`channel: 'voice'`) but unimplemented.
   Ansuz already has a working realtime voice pipeline (`src/llm/xaiVoice.ts`) —
   connecting it to Twilio Voice is the obvious next build.
+
+---
+
+Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Proprietary — see [`COPYRIGHT`](../COPYRIGHT).

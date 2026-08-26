@@ -228,3 +228,12 @@ database. Setup, the three safety guards, and per-business configuration:
 - Phase 3: MediaPipe perception layer (WASM, client-side) streaming structured JSON
   over WebSocket into the scene.
 - Phase 4+: self-improvement loop.
+
+---
+
+## Copyright
+
+Copyright © 2026 **Byte Me Studios**. All rights reserved.
+Ryleigh Maloy · Trey Maloy
+
+Proprietary. See [`COPYRIGHT`](COPYRIGHT) for scope and terms.

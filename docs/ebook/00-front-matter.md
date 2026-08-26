@@ -12,15 +12,23 @@
 
 ## Copyright
 
-Copyright © 2026. All rights reserved.
+**Copyright © 2026 Byte Me Studios. All rights reserved.**
+
+Written by Ryleigh Maloy and Trey Maloy.
+
+Published by Byte Me Studios.
 
 No part of this publication may be reproduced, distributed, or transmitted in any
-form or by any means without the prior written permission of the publisher, except
-in the case of brief quotations embodied in critical reviews and certain other
+form or by any means — electronic, mechanical, photocopying, recording, or
+otherwise — without the prior written permission of the publisher, except in the
+case of brief quotations embodied in critical reviews and certain other
 noncommercial uses permitted by copyright law.
 
-The code listings in this book are provided for instructional purposes. You are
-free to use them in your own projects.
+The BMDC system, its architecture, agent designs, database schema, and the "Byte
+Me Dev Crew" name described in this book are the property of Byte Me Studios.
+
+The code listings in this book are provided for instructional purposes. Readers
+are free to use them in their own projects.
 
 **First edition, 2026.**
 

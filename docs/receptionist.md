@@ -173,3 +173,8 @@ The charter requires the receptionist to identify itself as an AI when asked,
 without hedging. That's the same rule the crew operates under, and it should
 stay in place for the same reason: someone on a phone line deserves a straight
 answer to a straight question.
+
+---
+
+Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Proprietary — see [`COPYRIGHT`](../COPYRIGHT).
