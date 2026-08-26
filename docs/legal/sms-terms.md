@@ -78,7 +78,7 @@ us for anything time-critical or safety-related.
 ## Privacy
 
 Your phone number and message content are handled under our
-[Privacy Policy]([WEBSITE]/privacy). In short: we use it to message you, we
+[Privacy Policy](https://bytemedevstudio.com/privacy). In short: we use it to message you, we
 share it with our telephony provider and our AI provider in order to send and
 generate messages, and we do not sell it.
 

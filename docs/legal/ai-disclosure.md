@@ -56,7 +56,7 @@ the AI is consulted.
 **We store a text transcript. We do not record or store call audio.**
 
 Transcripts are kept so the business can review what was said and so we can fix
-mistakes. They are handled under our [Privacy Policy]([WEBSITE]/privacy).
+mistakes. They are handled under our [Privacy Policy](https://bytemedevstudio.com/privacy).
 
 Call recording consent laws vary by state, and several require all parties to
 consent. Businesses using our receptionist are responsible for complying with

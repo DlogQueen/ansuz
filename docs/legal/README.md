@@ -32,15 +32,39 @@ folder — nothing should ship with a bracket left in it.
 - `[CONTACT EMAIL]` — a monitored address. `privacy@` and `support@` are
   conventional and worth setting up.
 - `[STATE]` / `[COUNTY]` — the governing jurisdiction for disputes.
-- `[WEBSITE]` — where these will actually live.
+- `[SUPPORT PHONE]` — a number in the SMS terms that reaches a human.
+- `[N]` — message frequency cap, and the refund window in the Terms.
+
+The website is set: **bytemedevstudio.com**. The canonical URLs the documents
+already cross-reference are:
+
+| Document | URL |
+|---|---|
+| Privacy Policy | `https://bytemedevstudio.com/privacy` |
+| SMS Terms | `https://bytemedevstudio.com/sms-terms` |
+| Terms of Service | `https://bytemedevstudio.com/terms` |
+| AI Disclosure | `https://bytemedevstudio.com/ai-disclosure` |
+
+These paths are referenced from inside the documents, so if you publish at
+different paths, update the cross-references too.
+
+Suggested addresses at the domain: `privacy@bytemedevstudio.com` and
+`support@bytemedevstudio.com`.
 
 ## The order that matters
 
 1. **Publish the privacy policy and SMS terms at real URLs first.** A2P
    registration asks for them and will not proceed without them.
-2. **Register the A2P 10DLC campaign** with Twilio. Expect it to take days, not
-   minutes, and expect the sample messages to need the opt-out line.
+2. **Register the A2P 10DLC campaign** with Twilio, at
+   [console.twilio.com](https://console.twilio.com) → Messaging → Regulatory
+   Compliance. Brand approval is usually minutes; **campaign review takes 10-15
+   days.** Sample messages must include the opt-out line or the campaign is
+   rejected. If there's no EIN yet, the Sole Proprietor path skips the tax ID
+   at the cost of much lower throughput.
 3. **Then** run a live campaign.
+
+The two-week campaign review is the real constraint. Start it before you need
+it.
 
 Doing this in the other order means building the whole funnel and then
 discovering the number can't send.
