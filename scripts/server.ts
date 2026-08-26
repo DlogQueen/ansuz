@@ -15,6 +15,8 @@ import {
 import { verifyStripeSignature } from '../src/integrations/stripe.js';
 import { handleInboundMessage, handleStripeEvent } from '../src/crew/pipeline.js';
 import { runCycle } from '../src/crew/orchestrator.js';
+import { parseInboundCall } from '../src/integrations/twilioVoice.js';
+import { handleCallerTurn, handleIncomingCall } from '../src/receptionist/callFlow.js';
 
 /**
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
@@ -174,6 +176,44 @@ const server = createServer(async (req, res) => {
 
       const result = await handleStripeEvent(event);
       sendJson(res, 200, { received: true, handled: result.handled });
+      return;
+    }
+
+    // Receptionist (SKU 03): Twilio Voice. Two routes -- the call arriving,
+    // and each thing the caller says afterwards. Both signature-verified for
+    // the same reason the SMS webhook is: a forged call webhook could book
+    // appointments into a real business's calendar.
+    if (req.method === 'POST' && (req.url === '/api/twilio/voice' || req.url?.startsWith('/api/twilio/voice/turn'))) {
+      const raw = await readTextBody(req);
+      const params = Object.fromEntries(new URLSearchParams(raw));
+      const path = (req.url as string).split('?')[0];
+
+      const valid = verifyTwilioSignature({
+        signature: req.headers['x-twilio-signature'] as string | undefined,
+        // Twilio signs the URL it called, query string included.
+        url: publicUrlFor(req.url as string),
+        body: params,
+      });
+      if (!valid) {
+        console.warn('[receptionist] rejected voice webhook with an invalid Twilio signature.');
+        res.writeHead(403);
+        res.end();
+        return;
+      }
+
+      const call = parseInboundCall(params);
+      const turnUrl = publicUrlFor('/api/twilio/voice/turn');
+      const twiml =
+        path === '/api/twilio/voice'
+          ? await handleIncomingCall({ call, turnUrl })
+          : await handleCallerTurn({
+              call,
+              turnUrl,
+              silent: new URL(req.url as string, 'http://x').searchParams.get('silent') === '1',
+            });
+
+      res.writeHead(200, { 'Content-Type': 'text/xml' });
+      res.end(twiml);
       return;
     }
 

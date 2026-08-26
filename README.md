@@ -117,7 +117,8 @@ src/memory/             -- short-term / long-term memory read+write + types
 src/llm/                -- OpenRouter chat completion + embeddings clients
 src/conversation/       -- the conversation loop (retrieve -> log -> generate -> log)
 src/crew/               -- BMDC: the agentic sales crew (see docs/bmdc.md)
-src/integrations/       -- Twilio and Stripe REST clients + webhook verification
+src/receptionist/       -- BMDC Receptionist: 24/7 call answering (docs/receptionist.md)
+src/integrations/       -- Twilio (SMS + Voice) and Stripe clients + webhook verification
 scripts/                -- one-off scripts (connection check, chat REPL, etc.)
 web/                    -- WebXR scene shell (Three.js + Vite)
 ```
@@ -197,6 +198,23 @@ npm run bmdc -- status               # roster, gaps, campaigns, revenue
 Needs `supabase/migrations/0002_bmdc_crew.sql` applied and the BMDC block in
 `.env` filled in. Full setup, the adapt loop, the replication caps, and the
 consent model: **[docs/bmdc.md](docs/bmdc.md)**.
+
+## BMDC Receptionist
+
+The crew's agents split out and pointed at a phone line: answers calls 24/7,
+books appointments, takes messages, escalates what a human should handle.
+Sold separately from the crew, built on the same foundations.
+
+```sh
+npm run receptionist -- add smiles "Smiles Dental" +15551234567 America/Chicago
+npm run receptionist -- hours smiles mon-fri 09:00 17:00
+npm run receptionist -- slots smiles     # preview what a caller would hear
+```
+
+Double-booking is refused by a Postgres exclusion constraint rather than an
+application check, so two callers racing for the same slot is resolved by the
+database. Setup, the three safety guards, and per-business configuration:
+**[docs/receptionist.md](docs/receptionist.md)**.
 
 ## Next steps
 

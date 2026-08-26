@@ -11,7 +11,9 @@
     "consolidate": "tsx scripts/consolidate.ts",
     "bmdc": "tsx scripts/bmdc.ts",
     "test:bmdc": "tsx scripts/test-bmdc.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "receptionist": "tsx scripts/receptionist.ts",
+    "test:receptionist": "tsx scripts/test-receptionist.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
