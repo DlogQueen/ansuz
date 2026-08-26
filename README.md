@@ -231,6 +231,17 @@ database. Setup, the three safety guards, and per-business configuration:
 
 ---
 
+## Legal
+
+Public-facing policies live in [`docs/legal/`](docs/legal/) — privacy policy,
+SMS terms, terms of service, and AI disclosure. They are drafts for attorney
+review, with bracketed placeholders that must be filled in before publishing.
+
+**The SMS terms and privacy policy are a hard blocker on outreach**: Twilio's
+A2P 10DLC registration requires both at public URLs, and campaigns without them
+are rejected. See [`docs/legal/README.md`](docs/legal/README.md) for the order
+to do this in.
+
 ## Copyright
 
 Copyright © 2026 **Byte Me Studios**. All rights reserved.
