@@ -17,7 +17,8 @@
     "build": "tsc",
     "start": "node dist/scripts/server.js",
     "build:site": "tsx scripts/build-site.ts",
-    "build:preview": "tsx scripts/build-preview.ts"
+    "build:preview": "tsx scripts/build-preview.ts",
+    "verify:twilio": "tsx scripts/verify-twilio-live.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
