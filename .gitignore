@@ -7,3 +7,6 @@ dist/
 # Piper TTS binary + voice models -- large downloaded artifacts, not source.
 # See src/llm/piperTts.ts for how these get fetched.
 vendor/
+
+# generated single-file site preview
+site/.preview/
