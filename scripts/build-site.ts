@@ -205,9 +205,13 @@ function renderMarkdown(md: string): { html: string; title: string; updated: str
       para.push(lines[i].trim());
       i += 1;
     }
-    // A run of short lines is an address/contact block, where the line breaks
-    // are the content. Ordinary prose wraps near 78 columns and joins normally.
-    const isBlock = para.length > 1 && para.every((l) => l.length <= 48);
+    // An address/contact block is a run of short, unpunctuated lines where the
+    // line breaks are the content. Prose in these documents wraps near 78
+    // columns and ends its lines mid-sentence or with a period, so it joins
+    // normally. The 64 leaves room for a sole proprietor's "<name>, doing
+    // business as <trade name>" entity line, which is the longest of them.
+    const isBlock =
+      para.length > 1 && para.every((l) => l.length <= 64 && !l.endsWith('.'));
     const text = para.join(isBlock ? '\n' : ' ');
     if (!updated && /Last updated:/.test(text)) {
       updated = text;

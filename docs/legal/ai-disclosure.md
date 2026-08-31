@@ -102,7 +102,7 @@ The specific provider may change. This page will be updated when it does.
 
 ## Contact
 
-[LEGAL ENTITY]
+Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
 [CONTACT EMAIL]
 

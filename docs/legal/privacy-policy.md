@@ -3,7 +3,7 @@
 **Byte Me Studios**
 Last updated: [DATE] · Effective: [DATE]
 
-This policy explains what personal information [LEGAL ENTITY] ("Byte Me
+This policy explains what personal information Arthur Trey Maloy, doing business as Byte Me Studios ("Byte Me
 Studios", "we", "us") collects when you interact with our services, why we
 collect it, who we share it with, and what you can do about it.
 
@@ -162,7 +162,7 @@ affecting how we use your information will be announced before taking effect.
 
 ## Contact
 
-[LEGAL ENTITY]
+Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
 [CONTACT EMAIL]
 

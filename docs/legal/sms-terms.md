@@ -57,7 +57,7 @@ again, contact us at [CONTACT EMAIL] and a person will handle it.
 
 **Reply HELP to any message**, or contact:
 
-[LEGAL ENTITY]
+Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
 [CONTACT EMAIL]
 [SUPPORT PHONE]

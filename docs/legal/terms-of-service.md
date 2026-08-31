@@ -4,7 +4,7 @@
 Last updated: [DATE] · Effective: [DATE]
 
 These terms govern your use of products and services provided by
-[LEGAL ENTITY] ("Byte Me Studios", "we", "us"). By purchasing or using them,
+Arthur Trey Maloy, doing business as Byte Me Studios ("Byte Me Studios", "we", "us"). By purchasing or using them,
 you agree to these terms.
 
 ## What we provide
@@ -168,7 +168,7 @@ acceptance.
 
 ## Contact
 
-[LEGAL ENTITY]
+Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
 [CONTACT EMAIL]
 
