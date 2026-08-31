@@ -1,0 +1,9 @@
+/privacy          /privacy.html        200
+/sms-terms        /sms-terms.html      200
+/terms            /terms.html          200
+/ai-disclosure    /ai-disclosure.html  200
+/receptionist     /receptionist.html   200
+/crew             /crew.html           200
+/book             /book.html           200
+/privacy-policy   /privacy             301
+/sms              /sms-terms           301

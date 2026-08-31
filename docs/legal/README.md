@@ -51,6 +51,23 @@ different paths, update the cross-references too.
 Suggested addresses at the domain: `privacy@bytemedevstudio.com` and
 `support@bytemedevstudio.com`.
 
+## Publishing them
+
+The pages on the site are **generated from these files**:
+
+```sh
+npm run build:site
+```
+
+That renders `privacy-policy.md`, `sms-terms.md`, `terms-of-service.md` and
+`ai-disclosure.md` into `site/privacy.html`, `site/sms-terms.html`,
+`site/terms.html` and `site/ai-disclosure.html`, wrapped in the site template
+and reachable at the canonical URLs above.
+
+Edit the markdown, never the HTML — the HTML is overwritten on every build.
+Any placeholder left unfilled renders in red on the live page, and the build
+prints a list of what is still outstanding.
+
 ## The order that matters
 
 1. **Publish the privacy policy and SMS terms at real URLs first.** A2P

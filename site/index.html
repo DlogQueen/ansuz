@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Byte Me Dev Studio — AI that answers the phone and closes the sale</title>
+<meta name="description" content="AI systems that touch real customers: a 24/7 AI receptionist that books appointments, and an autonomous sales crew that runs SMS outreach and closes through Stripe. Built by Byte Me Dev Studio.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="mark">BM</span> Byte Me Dev Studio</a>
+    <nav class="site-nav">
+      <a href="/receptionist">Receptionist</a>
+      <a href="/crew">Sales Crew</a>
+      <a href="/book">The Book</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Byte Me Dev Studio</p>
+    <h1>AI that answers the phone, and tells you when it can't.</h1>
+    <p class="lede">We build AI systems that talk to your actual customers — booking appointments at 2am, following up on leads, taking payment. Then we publish exactly what they're forbidden to do, and the bugs we found on the way.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="/receptionist">See the receptionist</a>
+      <a class="btn btn-ghost" href="#products">All products</a>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="note amber narrow">
+      <span class="lbl">Why we lead with the limits</span>
+      <p>Most AI vendors show you the demo. The demo always works. What decides whether a system is worth having is what it does on the day it's wrong — and that's the part nobody publishes. We do: our technical book includes the two bugs that nearly shipped, one of which would have kept texting people who'd asked us to stop.</p>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="wrap">
+    <h2>Three ways to work with us</h2>
+    <hr class="rule">
+    <p class="section-lede">Same engine underneath. Pick the surface area you actually need.</p>
+
+    <div class="cards three">
+
+      <div class="card">
+        <span class="kicker">01 · Subscription</span>
+        <h3>The Receptionist</h3>
+        <span class="chip chip-soon">Onboarding now</span>
+        <p>Answers every call, 24/7. Books straight into your calendar, takes messages, and hands off to a human the moment it should. Never sleeps, never quits, never puts anyone on hold.</p>
+        <div class="spacer"></div>
+        <div class="price">$297 <small>/ month</small></div>
+        <a class="btn btn-primary" href="/receptionist">How it works</a>
+      </div>
+
+      <div class="card">
+        <span class="kicker">02 · Deployed for you</span>
+        <h3>The Sales Crew</h3>
+        <span class="chip chip-soon">Limited availability</span>
+        <p>Three AI agents that research your market, write the offer, run SMS outreach to people who opted in, and adapt based on what actually sold — not what got engagement.</p>
+        <div class="spacer"></div>
+        <div class="price">$497 <small>setup + $97/mo</small></div>
+        <a class="btn btn-primary" href="/crew">How it works</a>
+      </div>
+
+      <div class="card">
+        <span class="kicker">03 · Read it yourself</span>
+        <h3>Byte Me — the book</h3>
+        <span class="chip chip-soon">Coming to Kindle</span>
+        <p>The complete architecture of the sales crew: every table, every constraint, every security check, and an honest account of what we verified versus what we didn't.</p>
+        <div class="spacer"></div>
+        <div class="price">$3.99</div>
+        <a class="btn btn-ghost" href="/book">What's in it</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What makes ours different</h2>
+    <hr class="rule">
+    <p class="section-lede">Not the model. Everyone has the same models. The difference is what we made impossible.</p>
+
+    <ul class="features two-col">
+      <li>
+        <strong>An opt-out is permanent</strong>
+        <span>When someone texts STOP, our code applies it before the AI ever sees the message — and nothing in the system can put them back on a list. Not an agent, not a bug, not a future refactor. Reversing it takes a human editing the database on purpose.</span>
+      </li>
+      <li>
+        <strong>Double-booking is refused by the database</strong>
+        <span>Not checked in code and hoped for. Two callers racing for the same 2pm slot is resolved by Postgres itself, which is the only thing fast enough to be right about it.</span>
+      </li>
+      <li>
+        <strong>Emergencies never reach the AI</strong>
+        <span>Chest pain, a lawyer, an emergency — those route to a person <em>before</em> the AI is asked what it thinks. It doesn't depend on the AI recognising the situation.</span>
+      </li>
+      <li>
+        <strong>It can't invent an appointment</strong>
+        <span>The receptionist can only offer times it was handed. If the model returns something that wasn't on the list, it books nothing. Nobody arrives to a locked door.</span>
+      </li>
+      <li>
+        <strong>Revenue is the only scoreboard</strong>
+        <span>A campaign with great reply rates and zero sales reads as the failure it is. The crew is built to kill its own work when the numbers say so.</span>
+      </li>
+      <li>
+        <strong>It says it's an AI</strong>
+        <span>Ask it directly and it tells you, without hedging. That rule is in every agent, in every version, and a deployment can't switch it off.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap narrow">
+    <h2>Built on constraints, not promises</h2>
+    <hr class="rule">
+    <div class="prose">
+      <p>A rule written into an AI's instructions is a preference. It shapes behaviour; it does not guarantee it. Anything that <em>must not happen</em> has to be prevented by code that runs regardless of what the model decided.</p>
+      <p>That distinction is most of our engineering. The consent gate isn't a sentence in a prompt — it's three checks in three places, plus a function that throws if you ask it to un-delete someone's opt-out. The appointment guard isn't "please don't double-book" — it's a constraint the database enforces.</p>
+      <p>We think that's the difference between an AI product you can put in front of customers and one you can only demo.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap narrow">
+    <h2>Talk to us</h2>
+    <hr class="rule">
+    <p class="section-lede">Tell us what you're trying to stop doing manually. If we're not the right fit we'll say so.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="mailto:hello@bytemedevstudio.com">hello@bytemedevstudio.com</a>
+      <a class="btn btn-ghost" href="/receptionist">Start with the receptionist</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/"><span class="mark">BM</span> Byte Me Dev Studio</a>
+        <p style="margin:14px 0 0;max-width:38ch;">AI systems that touch real customers, with the limits written down.</p>
+      </div>
+      <div>
+        <h5>Products</h5>
+        <ul>
+          <li><a href="/receptionist">The Receptionist</a></li>
+          <li><a href="/crew">The Sales Crew</a></li>
+          <li><a href="/book">Byte Me — the book</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/sms-terms">SMS Terms</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/ai-disclosure">AI Disclosure</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 Byte Me Studios. All rights reserved. Ryleigh Maloy · Trey Maloy.</p>
+  </div>
+</footer>
+
+</body>
+</html>

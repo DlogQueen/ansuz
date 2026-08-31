@@ -216,6 +216,31 @@ application check, so two callers racing for the same slot is resolved by the
 database. Setup, the three safety guards, and per-business configuration:
 **[docs/receptionist.md](docs/receptionist.md)**.
 
+## Website — bytemedevstudio.com
+
+`site/` is the public site: the two products, the book, and the four legal
+pages. Plain static HTML plus one stylesheet — no build step for the marketing
+pages, no JavaScript at all.
+
+```sh
+npm run build:site       # renders docs/legal/*.md -> site/*.html
+npx serve site           # or any static server, to preview locally
+```
+
+The legal pages are **generated from `docs/legal/`**, which stays the single
+source of truth. Fill in the bracketed placeholders there and re-run; unfilled
+ones render in red on the page on purpose, so a policy published early looks
+broken rather than plausible. The build prints what is still outstanding.
+
+`netlify.toml` publishes `site/` and pins the legal URLs (`/privacy`,
+`/sms-terms`, `/terms`, `/ai-disclosure`) as rewrites, because those exact
+paths get registered with carriers and printed inside the policies themselves.
+`site/_redirects` and `site/_headers` mean the same site deploys unchanged to
+Cloudflare Pages.
+
+This is separate from the server deploy below — the site is static and the
+server is not.
+
 ## Next steps
 
 - Build the consolidation job (Edge Function or cron): summarize the short-term

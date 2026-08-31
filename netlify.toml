@@ -1,0 +1,62 @@
+# Static site for bytemedevstudio.com.
+#
+# Only the `site/` directory is published. The Node server (Twilio + Stripe
+# webhooks, the adapt cycle) CANNOT run here — it holds a WebSocket open and
+# runs setInterval jobs, and serverless freezes the process between requests.
+# It goes on a container host; see docs/deploy.md.
+
+[build]
+  publish = "site"
+  command = "npm run build:site"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Netlify serves /privacy from privacy.html on its own, but the legal URLs are
+# registered with carriers and printed in policies, so they are pinned here
+# rather than left to a platform default that could change.
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/sms-terms"
+  to = "/sms-terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/ai-disclosure"
+  to = "/ai-disclosure.html"
+  status = 200
+
+[[redirects]]
+  from = "/receptionist"
+  to = "/receptionist.html"
+  status = 200
+
+[[redirects]]
+  from = "/crew"
+  to = "/crew.html"
+  status = 200
+
+[[redirects]]
+  from = "/book"
+  to = "/book.html"
+  status = 200
+
+# Common aliases people and carriers actually type.
+[[redirects]]
+  from = "/privacy-policy"
+  to = "/privacy"
+  status = 301
+
+[[redirects]]
+  from = "/sms"
+  to = "/sms-terms"
+  status = 301
