@@ -467,3 +467,45 @@ npm run test:bmdc                 # 35 offline checks, no credentials needed
 ```
 
 Start with `--dry-run`. Always start with `--dry-run`.
+
+---
+
+## About the Authors
+
+**Byte Me Studios** is Ryleigh Maloy and Trey Maloy.
+
+BMDC came out of a simpler question than it looks: what would it take for a
+small team to sell something without hiring a sales department? Not in the
+aspirational sense — in the sense of actually building the thing and finding
+out where it breaks.
+
+The answer turned out to be less about AI than about plumbing. The interesting
+work wasn't getting three agents to talk to each other; it was deciding what
+they were forbidden to do, and then making those rules something the model
+couldn't argue with. Most of this book is about that distinction.
+
+Byte Me Studios builds AI systems that touch real customers — sales outreach
+that respects a STOP, an AI receptionist that hands off when it should. The
+common thread is a preference for constraints you can point at in a schema over
+promises made in a prompt.
+
+They write about what breaks, including their own work.
+
+**bytemedevstudio.com**
+
+---
+
+## Also from Byte Me Studios
+
+**BMDC — the crew, deployed.** The system in this book, configured for one
+business: their segment, their offer, their voice. The self-replication is the
+feature — the manager grows the roster into whatever the business actually
+needs.
+
+**BMDC Receptionist.** One agent, split out and pointed at a phone line.
+Answers 24/7, books into a real calendar, takes messages, escalates what a
+person should handle. Built on the same refusal-first foundations described in
+Part V — a booking cannot double-book, and an emergency reaches a human before
+the AI is asked what to think.
+
+Both at **bytemedevstudio.com**.

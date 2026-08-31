@@ -105,6 +105,29 @@ check(
 );
 check('spread: returns everything when fewer than asked', spreadSlots(multiDay.slice(0, 2), 3).length === 2);
 
+// Regression: spreadSlots must group by the business's LOCAL day, not the UTC
+// one. At UTC-8 a 9am and a 4pm slot on the same local Monday sit on different
+// UTC dates -- grouping by UTC "spread" them as two days, so the caller was
+// offered two Monday times believing they were Monday and Tuesday.
+const WEST = -480;
+const westSlots = computeOpenSlots({
+  rules, taken: [],
+  from: new Date('2026-03-02T00:00:00Z'), to: new Date('2026-03-07T00:00:00Z'),
+  slotMinutes: 60, leadMinutes: 0, timezoneOffsetMinutes: WEST, limit: 100,
+});
+const westSpread = spreadSlots(westSlots, 3, WEST);
+const localDayCount = new Set(
+  westSpread.map((s) => new Date(s.startsAt.getTime() + WEST * 60_000).toISOString().slice(0, 10))
+).size;
+check('spread: groups by local day, not UTC day (UTC-8 business)', localDayCount === 3);
+check(
+  'slots: UTC-8 business only opens during local 9-5',
+  westSlots.every((s) => {
+    const h = new Date(s.startsAt.getTime() + WEST * 60_000).getUTCHours();
+    return h >= 9 && h < 17;
+  })
+);
+
 // --- spoken formatting ------------------------------------------------------
 const noon = { startsAt: new Date('2026-03-02T12:00:00Z'), endsAt: new Date('2026-03-02T12:30:00Z') };
 check('describe: "today" for same day', describeSlot(noon, 0, new Date('2026-03-02T08:00:00Z')).startsWith('today at 12 PM'));
@@ -172,6 +195,30 @@ try {
 }
 
 check('turn limit is a sane number', MAX_TURNS > 2 && MAX_TURNS <= 20);
+
+// --- silent-caller loop -----------------------------------------------------
+// Regression: the silent branch used to gate on session.turns, which only
+// counts CALLER turns. A silent turn appends nothing, so the counter never
+// moved and the call re-prompted forever -- an open line billing per minute
+// with nobody on it. The re-prompt is now recorded in the transcript, so the
+// second silence can see the first.
+const REPROMPT_TEXT = "Sorry, I didn't catch that. Could you say that again?";
+function wouldHangUp(transcript: Array<{ role: string; text: string }>): boolean {
+  return transcript.some((t) => t.role === 'receptionist' && t.text === REPROMPT_TEXT);
+}
+check('silence: first silent turn re-prompts', !wouldHangUp([{ role: 'receptionist', text: 'Hi!' }]));
+check(
+  'silence: second silent turn hangs up (no infinite loop)',
+  wouldHangUp([{ role: 'receptionist', text: 'Hi!' }, { role: 'receptionist', text: REPROMPT_TEXT }])
+);
+check(
+  'silence: a caller who spoke once then went quiet still gets one re-prompt',
+  !wouldHangUp([
+    { role: 'receptionist', text: 'Hi!' },
+    { role: 'caller', text: 'hello' },
+    { role: 'receptionist', text: 'How can I help?' },
+  ])
+);
 
 // --- TwiML ------------------------------------------------------------------
 const gather = sayAndGather({ say: 'How can I help?', actionUrl: 'https://x.test/turn' });

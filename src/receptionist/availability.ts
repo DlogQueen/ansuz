@@ -59,9 +59,11 @@ export function computeOpenSlots(params: {
   cursor.setUTCHours(0, 0, 0, 0);
 
   while (cursor.getTime() < to.getTime() + DAY_MS && slots.length < limit) {
-    // Local midnight for this day, expressed as a UTC instant.
+    // `cursor` enumerates the business's local calendar days (as UTC midnights);
+    // `localMidnight` is that same local midnight expressed as a real UTC
+    // instant, which is what the slot arithmetic below needs.
     const localMidnight = cursor.getTime() - timezoneOffsetMinutes * MINUTE_MS;
-    const weekday = new Date(localMidnight + timezoneOffsetMinutes * MINUTE_MS).getUTCDay();
+    const weekday = cursor.getUTCDay();
 
     for (const rule of rules) {
       if (rule.weekday !== weekday) continue;
@@ -137,12 +139,19 @@ export function describeSlot(slot: TimeRange, timezoneOffsetMinutes = 0, now = n
  * afternoon, tomorrow morning, or Thursday?" -- the first three are nearly the
  * same choice, so a caller who can't do this afternoon has to be asked again.
  */
-export function spreadSlots(slots: TimeRange[], count = 3): TimeRange[] {
+export function spreadSlots(slots: TimeRange[], count = 3, timezoneOffsetMinutes = 0): TimeRange[] {
   if (slots.length <= count) return slots;
 
+  // Group by the business's LOCAL calendar day, not the UTC one. For a
+  // business far from UTC these disagree: at UTC-8, a 9am and a 4pm slot on the
+  // same local Monday fall on different UTC dates, so grouping by UTC would
+  // "spread" them as if they were two different days -- and the caller gets
+  // offered two Monday times believing they were offered Monday and Tuesday.
   const byDay = new Map<string, TimeRange[]>();
   for (const slot of slots) {
-    const key = slot.startsAt.toISOString().slice(0, 10);
+    const key = new Date(slot.startsAt.getTime() + timezoneOffsetMinutes * MINUTE_MS)
+      .toISOString()
+      .slice(0, 10);
     const group = byDay.get(key);
     if (group) group.push(slot);
     else byDay.set(key, [slot]);

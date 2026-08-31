@@ -34,6 +34,9 @@ import type { BusinessProfile, TimeRange, TranscriptTurn } from './types.js';
 
 const HOURS_AHEAD = 14 * 24;
 
+/** Said once when nothing was heard. Matched in the transcript to detect a repeat. */
+const REPROMPT = "Sorry, I didn't catch that. Could you say that again?";
+
 /** Rings: greet and start listening. */
 export async function handleIncomingCall(params: {
   call: InboundCall;
@@ -50,17 +53,22 @@ export async function handleIncomingCall(params: {
     );
   }
 
-  await startCallSession({
+  const session = await startCallSession({
     businessId: business.id,
     callSid: params.call.callSid,
     fromNumber: params.call.from,
     toNumber: params.call.to,
   });
 
-  await appendTurns({
-    callSid: params.call.callSid,
-    turns: [{ role: 'receptionist', text: business.greeting, at: new Date().toISOString() }],
-  });
+  // startCallSession upserts on call_sid so a Twilio retry continues the same
+  // call -- but appending unconditionally would then log the greeting twice.
+  // Only record it the first time.
+  if (session.transcript.length === 0) {
+    await appendTurns({
+      callSid: params.call.callSid,
+      turns: [{ role: 'receptionist', text: business.greeting, at: new Date().toISOString() }],
+    });
+  }
 
   return sayAndGather({ say: business.greeting, actionUrl: params.turnUrl });
 }
@@ -86,15 +94,26 @@ export async function handleCallerTurn(params: {
 
   // Nothing heard: one re-prompt, then hang up rather than looping forever on
   // a call where the caller has already walked away.
+  //
+  // The count has to come from the transcript, not from `session.turns` --
+  // that column only counts *caller* turns, and a silent turn appends nothing,
+  // so gating on it meant silence never advanced any counter and the call
+  // re-prompted forever. On a live line that is an open channel billing by the
+  // minute with nobody on it.
   if (params.silent || !isUsableSpeech(params.call)) {
-    if (session.turns >= 1) {
+    const alreadyReprompted = session.transcript.some(
+      (turn) => turn.role === 'receptionist' && turn.text === REPROMPT
+    );
+    if (alreadyReprompted) {
       await finishCallSession({ callSid: params.call.callSid, outcome: 'abandoned' });
       return sayAndHangUp("I didn't catch that, so I'll let you go. Please call back any time.");
     }
-    return sayAndGather({
-      say: "Sorry, I didn't catch that. Could you say that again?",
-      actionUrl: params.turnUrl,
+    // Recorded, so the next silent turn can see that this already happened.
+    await appendTurns({
+      callSid: params.call.callSid,
+      turns: [{ role: 'receptionist', text: REPROMPT, at: now.toISOString() }],
     });
+    return sayAndGather({ say: REPROMPT, actionUrl: params.turnUrl });
   }
 
   const callerSaid = params.call.speechResult as string;
@@ -129,7 +148,7 @@ export async function handleCallerTurn(params: {
 
   const offset = timezoneOffsetMinutes(business.timezone);
   const slots = await openSlotsFor(business, now, offset);
-  const offered = spreadSlots(slots, 3);
+  const offered = spreadSlots(slots, 3, offset);
 
   let decision;
   try {
@@ -219,7 +238,8 @@ export async function handleCallerTurn(params: {
           (await openSlotsFor(business, now, offset)).filter(
             (candidate) => candidate.startsAt.getTime() !== slot.startsAt.getTime()
           ),
-          2
+          2,
+          offset
         );
         const say =
           remaining.length > 0
