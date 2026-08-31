@@ -470,9 +470,9 @@ Start with `--dry-run`. Always start with `--dry-run`.
 
 ---
 
-## About the Authors
+## About the Author
 
-**Byte Me Studios** is Ryleigh Maloy and Trey Maloy.
+**Byte Me Studios** is a one-person studio.
 
 BMDC came out of a simpler question than it looks: what would it take for a
 small team to sell something without hiring a sales department? Not in the

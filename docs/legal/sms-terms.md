@@ -89,4 +89,4 @@ effect, and where required we will ask you to opt in again.
 
 ---
 
-Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Copyright © 2026 Byte Me Studios. All rights reserved.

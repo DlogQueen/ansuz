@@ -181,4 +181,4 @@ the same Supabase project.
 
 ---
 
-Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Copyright © 2026 Byte Me Studios. All rights reserved.

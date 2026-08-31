@@ -25,7 +25,13 @@ Every document contains bracketed placeholders. Search for `[` across the
 folder — nothing should ship with a bracket left in it.
 
 - `[LEGAL ENTITY]` — the registered name. "Byte Me Studios" is a trade name
-  unless you've actually formed an entity under it; if it's an LLC, say so.
+  unless an entity has actually been formed under it. With an LLC, use its exact
+  registered name. Without one, the business is legally its owner, so the line
+  reads "<legal name>, doing business as Byte Me Studios" — and it has to be the
+  name on the owner's ID and tax records, because A2P registration checks it
+  against them and a mismatch is the most common rejection. This is the only
+  place a personal name appears; the copyright notice, the site footer, and the
+  book byline all read "Byte Me Studios" alone.
 - `[BUSINESS ADDRESS]` — a real mailing address. Required by CAN-SPAM for
   email, and expected by carriers for SMS registration. A registered agent's
   address or a PO box is normal here; a home address is not required.
@@ -101,4 +107,4 @@ Read it before publishing, because it contains promises the code has to keep:
 
 ---
 
-Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Copyright © 2026 Byte Me Studios. All rights reserved.

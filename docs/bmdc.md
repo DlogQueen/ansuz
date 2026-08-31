@@ -193,5 +193,5 @@ on `stripe_session_id` so Stripe's own retries are idempotent.
 
 ---
 
-Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Copyright © 2026 Byte Me Studios. All rights reserved.
 Proprietary — see [`COPYRIGHT`](../COPYRIGHT).

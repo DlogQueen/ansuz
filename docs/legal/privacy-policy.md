@@ -168,4 +168,4 @@ affecting how we use your information will be announced before taking effect.
 
 ---
 
-Copyright © 2026 Byte Me Studios (Ryleigh Maloy, Trey Maloy). All rights reserved.
+Copyright © 2026 Byte Me Studios. All rights reserved.

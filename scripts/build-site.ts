@@ -299,7 +299,7 @@ ${PAGES.map((p) => `          <li><a href="${p.path}">${p.nav}</a></li>`).join('
         </ul>
       </div>
     </div>
-    <p class="fine">© 2026 Byte Me Studios. All rights reserved. Ryleigh Maloy · Trey Maloy.</p>
+    <p class="fine">© 2026 Byte Me Studios. All rights reserved.</p>
   </div>
 </footer>
 

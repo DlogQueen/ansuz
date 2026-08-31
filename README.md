@@ -278,6 +278,5 @@ to do this in.
 ## Copyright
 
 Copyright © 2026 **Byte Me Studios**. All rights reserved.
-Ryleigh Maloy · Trey Maloy
 
 Proprietary. See [`COPYRIGHT`](COPYRIGHT) for scope and terms.

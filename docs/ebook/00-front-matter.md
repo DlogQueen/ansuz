@@ -14,9 +14,7 @@
 
 **Copyright © 2026 Byte Me Studios. All rights reserved.**
 
-Written by Ryleigh Maloy and Trey Maloy.
-
-Published by Byte Me Studios.
+Written and published by Byte Me Studios.
 
 No part of this publication may be reproduced, distributed, or transmitted in any
 form or by any means — electronic, mechanical, photocopying, recording, or
