@@ -13,7 +13,9 @@
     "test:bmdc": "tsx scripts/test-bmdc.ts",
     "typecheck": "tsc --noEmit",
     "receptionist": "tsx scripts/receptionist.ts",
-    "test:receptionist": "tsx scripts/test-receptionist.ts"
+    "test:receptionist": "tsx scripts/test-receptionist.ts",
+    "build": "tsc",
+    "start": "node dist/scripts/server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

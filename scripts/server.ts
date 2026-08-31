@@ -54,12 +54,26 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
  * at) rather than the Host header, since the header is attacker-controlled and
  * this value is half of a signature check.
  */
-function publicUrlFor(path: string): string {
+function publicUrlFor(path: string): string | null {
   const base = process.env.BMDC_PUBLIC_URL;
-  if (!base) {
-    throw new Error('BMDC_PUBLIC_URL must be set to verify Twilio webhook signatures.');
-  }
+  if (!base) return null;
   return `${base.replace(/\/$/, '')}${path}`;
+}
+
+/**
+ * Reject a Twilio webhook that cannot be verified, saying which piece of config
+ * is missing.
+ *
+ * Returns 403 rather than letting the missing-config case throw into a 500.
+ * Two reasons, both learned by deploying this and watching it: Twilio treats
+ * 5xx as transient and retries hard, so a forgotten environment variable turns
+ * into a retry storm; and "403 plus a log line naming the variable" is a
+ * dramatically better 2am debugging experience than an unexplained 500.
+ */
+function rejectUnverifiable(res: ServerResponse, reason: string): void {
+  console.error(`[bmdc] rejecting Twilio webhook — ${reason}`);
+  res.writeHead(403);
+  res.end();
 }
 
 const server = createServer(async (req, res) => {
@@ -138,15 +152,17 @@ const server = createServer(async (req, res) => {
       const raw = await readTextBody(req);
       const params = Object.fromEntries(new URLSearchParams(raw));
 
-      const valid = verifyTwilioSignature({
+      const url = publicUrlFor('/api/twilio/inbound');
+      if (!url) {
+        rejectUnverifiable(res, 'BMDC_PUBLIC_URL is not set, so the signed URL cannot be reconstructed');
+        return;
+      }
+      if (!verifyTwilioSignature({
         signature: req.headers['x-twilio-signature'] as string | undefined,
-        url: publicUrlFor('/api/twilio/inbound'),
+        url,
         body: params,
-      });
-      if (!valid) {
-        console.warn('[bmdc] rejected inbound message with an invalid Twilio signature.');
-        res.writeHead(403);
-        res.end();
+      })) {
+        rejectUnverifiable(res, 'invalid X-Twilio-Signature on an inbound message');
         return;
       }
 
@@ -188,21 +204,23 @@ const server = createServer(async (req, res) => {
       const params = Object.fromEntries(new URLSearchParams(raw));
       const path = (req.url as string).split('?')[0];
 
-      const valid = verifyTwilioSignature({
+      const calledUrl = publicUrlFor(req.url as string);
+      const turnUrl = publicUrlFor('/api/twilio/voice/turn');
+      if (!calledUrl || !turnUrl) {
+        rejectUnverifiable(res, 'BMDC_PUBLIC_URL is not set, so the line cannot answer calls');
+        return;
+      }
+      if (!verifyTwilioSignature({
         signature: req.headers['x-twilio-signature'] as string | undefined,
         // Twilio signs the URL it called, query string included.
-        url: publicUrlFor(req.url as string),
+        url: calledUrl,
         body: params,
-      });
-      if (!valid) {
-        console.warn('[receptionist] rejected voice webhook with an invalid Twilio signature.');
-        res.writeHead(403);
-        res.end();
+      })) {
+        rejectUnverifiable(res, 'invalid X-Twilio-Signature on a voice webhook');
         return;
       }
 
       const call = parseInboundCall(params);
-      const turnUrl = publicUrlFor('/api/twilio/voice/turn');
       const twiml =
         path === '/api/twilio/voice'
           ? await handleIncomingCall({ call, turnUrl })

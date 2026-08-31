@@ -231,6 +231,14 @@ database. Setup, the three safety guards, and per-business configuration:
 
 ---
 
+## Deploying
+
+`Dockerfile` + `fly.toml` deploy the server; the legal pages are static and go
+elsewhere. **The server cannot run on Vercel/Netlify** — it holds a WebSocket
+open and runs two `setInterval` jobs, and serverless freezes the process between
+requests, so consolidation and the adapt cycle silently never fire. Use a
+container host. Full walkthrough: **[docs/deploy.md](docs/deploy.md)**.
+
 ## Legal
 
 Public-facing policies live in [`docs/legal/`](docs/legal/) — privacy policy,
