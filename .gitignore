@@ -10,3 +10,6 @@ vendor/
 
 # generated single-file site preview
 site/.preview/
+
+# Netlify CLI local link state (per-machine, written by the deploy command)
+.netlify/
