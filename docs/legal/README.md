@@ -35,8 +35,10 @@ folder — nothing should ship with a bracket left in it.
 - `[BUSINESS ADDRESS]` — a real mailing address. Required by CAN-SPAM for
   email, and expected by carriers for SMS registration. A registered agent's
   address or a PO box is normal here; a home address is not required.
-- `[CONTACT EMAIL]` — a monitored address. `privacy@` and `support@` are
-  conventional and worth setting up.
+- `[CONTACT EMAIL]` — a monitored address. Currently `bytemedevstudio@gmail.com`,
+  which works but reads as a placeholder to anyone evaluating the business.
+  `privacy@bytemedevstudio.com` and `support@bytemedevstudio.com` on the domain
+  are conventional and worth setting up before this is used for A2P.
 - `[STATE]` / `[COUNTY]` — the governing jurisdiction for disputes.
 - `[SUPPORT PHONE]` — a number in the SMS terms that reaches a human.
 - `[N]` — message frequency cap, and the refund window in the Terms.
@@ -54,8 +56,8 @@ already cross-reference are:
 These paths are referenced from inside the documents, so if you publish at
 different paths, update the cross-references too.
 
-Suggested addresses at the domain: `privacy@bytemedevstudio.com` and
-`support@bytemedevstudio.com`.
+Suggested addresses at the domain, once mail is set up there:
+`privacy@bytemedevstudio.com` and `support@bytemedevstudio.com`.
 
 ## Publishing them
 

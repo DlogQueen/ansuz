@@ -28,7 +28,7 @@ to receive them. You give consent by:
 
 **We do not message purchased lists, scraped numbers, or anyone who has not
 affirmatively agreed.** If you are receiving messages you did not sign up for,
-reply STOP and tell us at [CONTACT EMAIL] — we want to know.
+reply STOP and tell us at bytemedevstudio@gmail.com — we want to know.
 
 ## Message frequency
 
@@ -51,7 +51,7 @@ further.
 
 **Opting out is permanent on our side.** Our system will not put you back on the
 list automatically, even if you text START later. If you genuinely want messages
-again, contact us at [CONTACT EMAIL] and a person will handle it.
+again, contact us at bytemedevstudio@gmail.com and a person will handle it.
 
 ## How to get help
 
@@ -59,7 +59,7 @@ again, contact us at [CONTACT EMAIL] and a person will handle it.
 
 Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
-[CONTACT EMAIL]
+bytemedevstudio@gmail.com
 [SUPPORT PHONE]
 
 ## Supported carriers

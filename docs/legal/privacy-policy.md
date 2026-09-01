@@ -114,7 +114,7 @@ automatically, even if you later text START. To genuinely resume, contact us.
 
 **Get help.** Reply **HELP** to any message.
 
-**Ask what we hold, or ask us to delete it.** Email [CONTACT EMAIL]. We will
+**Ask what we hold, or ask us to delete it.** Email bytemedevstudio@gmail.com. We will
 respond within 30 days. We may need to verify you control the phone number or
 email in question. Note that we cannot delete opt-out records or records we are
 required to keep for tax or legal reasons.
@@ -164,7 +164,7 @@ affecting how we use your information will be announced before taking effect.
 
 Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
-[CONTACT EMAIL]
+bytemedevstudio@gmail.com
 
 ---
 

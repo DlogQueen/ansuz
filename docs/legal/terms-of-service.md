@@ -156,7 +156,7 @@ conflict of law principles.
 Disputes will be resolved in the state or federal courts located in [COUNTY],
 [STATE], and you consent to that jurisdiction.
 
-**Before filing anything, contact us at [CONTACT EMAIL].** Most disputes are
+**Before filing anything, contact us at bytemedevstudio@gmail.com.** Most disputes are
 misunderstandings, and we would rather resolve one in an email than in a
 courtroom.
 
@@ -170,7 +170,7 @@ acceptance.
 
 Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
-[CONTACT EMAIL]
+bytemedevstudio@gmail.com
 
 ---
 

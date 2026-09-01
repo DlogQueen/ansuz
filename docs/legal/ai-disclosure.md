@@ -75,7 +75,7 @@ housing, or access to essential services, and we do not build profiles for those
 purposes.
 
 If a decision one of our systems made about you seems wrong, contact
-[CONTACT EMAIL] and a person will review it.
+bytemedevstudio@gmail.com and a person will review it.
 
 ## AI mistakes
 
@@ -87,7 +87,7 @@ double-book someone else's slot, a low-confidence transcription is re-asked
 rather than acted on, and a conversation that isn't going anywhere is handed to
 a human. Those reduce mistakes; they don't eliminate them.
 
-**If our system got something wrong for you, tell us at [CONTACT EMAIL].** We
+**If our system got something wrong for you, tell us at bytemedevstudio@gmail.com.** We
 keep transcripts specifically so that we can look at what happened rather than
 guess.
 
@@ -104,7 +104,7 @@ The specific provider may change. This page will be updated when it does.
 
 Arthur Trey Maloy, doing business as Byte Me Studios
 [BUSINESS ADDRESS]
-[CONTACT EMAIL]
+bytemedevstudio@gmail.com
 
 ---
 
