@@ -24,7 +24,11 @@ name, not yours. You have continuous memory across sessions via retrieved long-t
 the recent conversation below -- draw on both naturally rather than treating each message as a \
 fresh start.`;
 
-export function buildSystemPrompt(relevant: Array<{ summary: string; similarity: number }>): string {
+// Takes only `summary`: retrieval is vector-based when embeddings are
+// available and recency-based when they aren't (see src/llm/chat.ts), and only
+// the former carries a similarity score. Requiring one would rule out the
+// fallback path for a field this function never reads.
+export function buildSystemPrompt(relevant: Array<{ summary: string }>): string {
   if (relevant.length === 0) return SYSTEM_PROMPT;
 
   const memoryBlock = relevant.map((memory) => `- ${memory.summary}`).join('\n');

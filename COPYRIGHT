@@ -1,0 +1,67 @@
+Copyright © 2026 Byte Me Studios. All rights reserved.
+
+Byte Me Studios is a trade name. The underlying works are authored by its
+sole proprietor, whose legal name appears on any copyright registration filing
+rather than in this notice.
+
+------------------------------------------------------------------------------
+
+This repository and its contents are proprietary and confidential. No license,
+express or implied, is granted to any person or entity to use, copy, modify,
+merge, publish, distribute, sublicense, or sell any portion of this work without
+the prior written permission of Byte Me Studios.
+
+This notice covers, without limitation:
+
+  * BMDC (Byte Me Dev Crew) — the agentic sales crew: its architecture, agent
+    roster and mandates, the crew charter, the adapt loop, the bounded
+    self-replication design, and the database schema supporting them
+    (src/crew/, supabase/migrations/0002_bmdc_crew.sql).
+
+  * BMDC Receptionist — the AI call answering and appointment booking system,
+    including its call flow, escalation model, availability engine, and schema
+    (src/receptionist/, supabase/migrations/0003_receptionist.sql).
+
+  * The integration layers built for the above (src/integrations/).
+
+  * "Byte Me", "Byte Me Studios", "Byte Me Dev Crew", and "BMDC" as names and
+    marks used in connection with these works.
+
+  * The manuscript in docs/ebook/ and all accompanying documentation.
+
+Ansuz, the persistent VR/XR environment this work is built within, and the
+"Sophie" persona are likewise the property of Byte Me Studios.
+
+------------------------------------------------------------------------------
+
+THIRD-PARTY SERVICES
+
+This software interoperates with third-party APIs (Supabase, Twilio, Stripe,
+OpenRouter, Groq, xAI) via their public interfaces. Those services and their
+trademarks belong to their respective owners, and nothing in this notice claims
+any right in them. No third-party source code is vendored into this repository;
+the integrations are original implementations written against public API
+documentation.
+
+------------------------------------------------------------------------------
+
+A NOTE ON WHAT THIS DOES AND DOESN'T DO
+
+A copyright notice like this one asserts ownership and puts the world on notice.
+Copyright itself exists automatically from the moment a work is fixed in a
+tangible form — you own this whether or not this file exists.
+
+What this file does NOT do is register the copyright. In the United States,
+registration with the U.S. Copyright Office (copyright.gov) is what makes
+statutory damages and attorney's fees available in an infringement action, and
+registration before infringement — or within three months of publication — is
+what preserves those remedies. Registration is inexpensive relative to what it
+protects.
+
+The names "Byte Me Studios" and "Byte Me Dev Crew" are protected by copyright
+only as they appear in text; names and short phrases are generally not
+copyrightable on their own. Protecting them as brands is a trademark matter,
+separate from this notice.
+
+This is a description of how these mechanisms generally work, not legal advice.
+Talk to an attorney about registration and trademark before relying on either.

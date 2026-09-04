@@ -116,6 +116,9 @@ src/lib/                -- Supabase client setup
 src/memory/             -- short-term / long-term memory read+write + types
 src/llm/                -- OpenRouter chat completion + embeddings clients
 src/conversation/       -- the conversation loop (retrieve -> log -> generate -> log)
+src/crew/               -- BMDC: the agentic sales crew (see docs/bmdc.md)
+src/receptionist/       -- BMDC Receptionist: 24/7 call answering (docs/receptionist.md)
+src/integrations/       -- Twilio (SMS + Voice) and Stripe clients + webhook verification
 scripts/                -- one-off scripts (connection check, chat REPL, etc.)
 web/                    -- WebXR scene shell (Three.js + Vite)
 ```
@@ -178,6 +181,66 @@ oscillation so the effect is visible before real data exists -- that's a
 placeholder for Phase 3/4, which will feed it actual short-term memory volume and
 retrieval-similarity scores over the WebSocket instead.
 
+## BMDC — Byte Me Dev Crew
+
+An adaptive, self-replicating sales crew running on this repo's memory backend:
+three agents (manager, market researcher, social) that find market gaps, price
+offers, run SMS outreach through Twilio, and close through Stripe. Its learnings
+go into the same `long_term_memory` store Sophie uses, so the crew starts each
+cycle from what the last one found out.
+
+```sh
+npm run bmdc -- seed                 # create the founding three agents
+npm run bmdc -- cycle --dry-run      # plan + draft without sending anything
+npm run bmdc -- status               # roster, gaps, campaigns, revenue
+```
+
+Needs `supabase/migrations/0002_bmdc_crew.sql` applied and the BMDC block in
+`.env` filled in. Full setup, the adapt loop, the replication caps, and the
+consent model: **[docs/bmdc.md](docs/bmdc.md)**.
+
+## BMDC Receptionist
+
+The crew's agents split out and pointed at a phone line: answers calls 24/7,
+books appointments, takes messages, escalates what a human should handle.
+Sold separately from the crew, built on the same foundations.
+
+```sh
+npm run receptionist -- add smiles "Smiles Dental" +15551234567 America/Chicago
+npm run receptionist -- hours smiles mon-fri 09:00 17:00
+npm run receptionist -- slots smiles     # preview what a caller would hear
+```
+
+Double-booking is refused by a Postgres exclusion constraint rather than an
+application check, so two callers racing for the same slot is resolved by the
+database. Setup, the three safety guards, and per-business configuration:
+**[docs/receptionist.md](docs/receptionist.md)**.
+
+## Website — bytemedevstudio.com
+
+`site/` is the public site: the two products, the book, and the four legal
+pages. Plain static HTML plus one stylesheet — no build step for the marketing
+pages, no JavaScript at all.
+
+```sh
+npm run build:site       # renders docs/legal/*.md -> site/*.html
+npx serve site           # or any static server, to preview locally
+```
+
+The legal pages are **generated from `docs/legal/`**, which stays the single
+source of truth. Fill in the bracketed placeholders there and re-run; unfilled
+ones render in red on the page on purpose, so a policy published early looks
+broken rather than plausible. The build prints what is still outstanding.
+
+`netlify.toml` publishes `site/` and pins the legal URLs (`/privacy`,
+`/sms-terms`, `/terms`, `/ai-disclosure`) as rewrites, because those exact
+paths get registered with carriers and printed inside the policies themselves.
+`site/_redirects` and `site/_headers` mean the same site deploys unchanged to
+Cloudflare Pages.
+
+This is separate from the server deploy below — the site is static and the
+server is not.
+
 ## Next steps
 
 - Build the consolidation job (Edge Function or cron): summarize the short-term
@@ -190,3 +253,30 @@ retrieval-similarity scores over the WebSocket instead.
 - Phase 3: MediaPipe perception layer (WASM, client-side) streaming structured JSON
   over WebSocket into the scene.
 - Phase 4+: self-improvement loop.
+
+---
+
+## Deploying
+
+`Dockerfile` + `fly.toml` deploy the server; the legal pages are static and go
+elsewhere. **The server cannot run on Vercel/Netlify** — it holds a WebSocket
+open and runs two `setInterval` jobs, and serverless freezes the process between
+requests, so consolidation and the adapt cycle silently never fire. Use a
+container host. Full walkthrough: **[docs/deploy.md](docs/deploy.md)**.
+
+## Legal
+
+Public-facing policies live in [`docs/legal/`](docs/legal/) — privacy policy,
+SMS terms, terms of service, and AI disclosure. They are drafts for attorney
+review, with bracketed placeholders that must be filled in before publishing.
+
+**The SMS terms and privacy policy are a hard blocker on outreach**: Twilio's
+A2P 10DLC registration requires both at public URLs, and campaigns without them
+are rejected. See [`docs/legal/README.md`](docs/legal/README.md) for the order
+to do this in.
+
+## Copyright
+
+Copyright © 2026 **Byte Me Studios**. All rights reserved.
+
+Proprietary. See [`COPYRIGHT`](COPYRIGHT) for scope and terms.

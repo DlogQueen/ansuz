@@ -9,7 +9,16 @@
     "chat": "tsx scripts/chat.ts",
     "server": "tsx scripts/server.ts",
     "consolidate": "tsx scripts/consolidate.ts",
-    "typecheck": "tsc --noEmit"
+    "bmdc": "tsx scripts/bmdc.ts",
+    "test:bmdc": "tsx scripts/test-bmdc.ts",
+    "typecheck": "tsc --noEmit",
+    "receptionist": "tsx scripts/receptionist.ts",
+    "test:receptionist": "tsx scripts/test-receptionist.ts",
+    "build": "tsc",
+    "start": "node dist/scripts/server.js",
+    "build:site": "tsx scripts/build-site.ts",
+    "build:preview": "tsx scripts/build-preview.ts",
+    "verify:twilio": "tsx scripts/verify-twilio-live.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
