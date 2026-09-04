@@ -2,10 +2,16 @@
    Byte Me Dev Studio — design system
    ==========================================================================
 
-   Palette: deep teal on a cool off-white, with a signal amber that only ever
-   marks the honesty motif (what breaks, what's unverified, what we won't do).
-   The amber is load-bearing, not decoration -- if it appears, it means
-   "read this, it's a limitation."
+   Palette: a desaturated slate-teal on a barely-warm off-white, with a signal
+   amber that only ever marks the honesty motif (what breaks, what's unverified,
+   what we won't do). The amber is load-bearing, not decoration -- if it appears,
+   it means "read this, it's a limitation."
+
+   The accent is deliberately undersaturated. A jewel tone reads as a company
+   that picked a brand colour last month; muted and dark reads as one that has
+   been around, which is the claim this business needs to make and cannot make
+   with words. Same reason the shadows are almost flat: floating cards are a
+   pitch-deck cue, and nothing here should look like it is being pitched.
 
    Type: IBM Plex. Chosen because it was drawn for engineering documentation,
    which is what this company sells: systems whose constraints are written
@@ -13,26 +19,26 @@
    ========================================================================== */
 
 :root {
-  --ground:      #F6F8F8;
+  --ground:      #F7F7F5;
   --surface:     #FFFFFF;
-  --surface-2:   #EBEFEF;
-  --ink:         #0D1315;
-  --ink-2:       #38474C;
-  --ink-3:       #66787E;
-  --rule:        #D9E0E1;
+  --surface-2:   #ECEDE9;
+  --ink:         #131614;
+  --ink-2:       #414744;
+  --ink-3:       #6E7570;
+  --rule:        #DEDEDA;
 
-  --teal:        #0B6E68;
-  --teal-deep:   #075550;
-  --teal-soft:   #D5EBE8;
+  --teal:        #17514D;
+  --teal-deep:   #0E3B38;
+  --teal-soft:   #DEE8E6;
 
-  --amber:       #8A5A0B;
-  --amber-soft:  #F8EBD1;
+  --amber:       #7A5410;
+  --amber-soft:  #F2E9D8;
 
-  --crit:        #96292A;
-  --crit-soft:   #F6DDDD;
+  --crit:        #8A2F2C;
+  --crit-soft:   #F1DEDC;
 
-  --shadow-sm:   0 1px 2px rgba(13,19,21,.06);
-  --shadow:      0 1px 2px rgba(13,19,21,.05), 0 10px 30px -14px rgba(13,19,21,.22);
+  --shadow-sm:   0 1px 1px rgba(19,22,20,.04);
+  --shadow:      0 1px 1px rgba(19,22,20,.04), 0 2px 6px -3px rgba(19,22,20,.10);
 
   --max:         1120px;
   --read:        68ch;
@@ -40,36 +46,36 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ground:    #0A0F11;
-    --surface:   #121A1D;
-    --surface-2: #192327;
-    --ink:       #ECF2F2;
-    --ink-2:     #B0BFC3;
-    --ink-3:     #7A8B91;
-    --rule:      #222E32;
+    --ground:    #0E100F;
+    --surface:   #171A18;
+    --surface-2: #1F2320;
+    --ink:       #EDEFEC;
+    --ink-2:     #B4BAB4;
+    --ink-3:     #7E8681;
+    --rule:      #272B27;
 
-    --teal:      #4FD0BF;
-    --teal-deep: #7FE3D5;
-    --teal-soft: #123430;
+    --teal:      #86BDB3;
+    --teal-deep: #A6D3CA;
+    --teal-soft: #1B2E2B;
 
-    --amber:     #E2B063;
-    --amber-soft:#33260F;
+    --amber:     #CBA671;
+    --amber-soft:#2C2718;
 
-    --crit:      #E88A8A;
-    --crit-soft: #331A1A;
+    --crit:      #D69390;
+    --crit-soft: #2C1E1D;
 
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
-    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.8);
+    --shadow-sm: 0 1px 1px rgba(0,0,0,.35);
+    --shadow:    0 1px 1px rgba(0,0,0,.3), 0 2px 6px -3px rgba(0,0,0,.5);
   }
 }
 :root[data-theme="dark"] {
-  --ground:#0A0F11; --surface:#121A1D; --surface-2:#192327;
-  --ink:#ECF2F2; --ink-2:#B0BFC3; --ink-3:#7A8B91; --rule:#222E32;
-  --teal:#4FD0BF; --teal-deep:#7FE3D5; --teal-soft:#123430;
-  --amber:#E2B063; --amber-soft:#33260F;
-  --crit:#E88A8A; --crit-soft:#331A1A;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.8);
+  --ground:#0E100F; --surface:#171A18; --surface-2:#1F2320;
+  --ink:#EDEFEC; --ink-2:#B4BAB4; --ink-3:#7E8681; --rule:#272B27;
+  --teal:#86BDB3; --teal-deep:#A6D3CA; --teal-soft:#1B2E2B;
+  --amber:#CBA671; --amber-soft:#2C2718;
+  --crit:#D69390; --crit-soft:#2C1E1D;
+  --shadow-sm:0 1px 1px rgba(0,0,0,.35);
+  --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 6px -3px rgba(0,0,0,.5);
 }
 
 /* --- base ---------------------------------------------------------------- */
