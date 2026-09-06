@@ -17,6 +17,7 @@ import { handleInboundMessage, handleStripeEvent } from '../src/crew/pipeline.js
 import { runCycle } from '../src/crew/orchestrator.js';
 import { parseInboundCall } from '../src/integrations/twilioVoice.js';
 import { handleCallerTurn, handleIncomingCall } from '../src/receptionist/callFlow.js';
+import { consoleAllowedOrigin, handleConsoleRequest } from '../src/receptionist/console.js';
 
 /**
  * Small local HTTP bridge so the WebXR scene (browser, untrusted) can reach
@@ -233,6 +234,31 @@ const server = createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/xml' });
       res.end(twiml);
       return;
+    }
+
+    // Owner's console app (read-only, bearer token). Handled before the other
+    // routes so a bad token never reaches anything that touches the database.
+    if (req.url?.startsWith('/api/console/')) {
+      const allowed = consoleAllowedOrigin(req.headers.origin);
+      if (allowed) {
+        res.setHeader('Access-Control-Allow-Origin', allowed);
+        res.setHeader('Vary', 'Origin');
+        res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type');
+      }
+      if (req.method === 'OPTIONS') {
+        res.writeHead(allowed ? 204 : 403);
+        res.end();
+        return;
+      }
+      const consoleResult = await handleConsoleRequest({
+        method: req.method ?? 'GET',
+        url: req.url,
+        authorization: req.headers.authorization,
+      });
+      if (consoleResult) {
+        sendJson(res, consoleResult.status, consoleResult.body);
+        return;
+      }
     }
 
     if (req.method === 'POST' && req.url === '/api/bmdc/cycle') {

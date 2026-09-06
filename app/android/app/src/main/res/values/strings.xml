@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Receptionist</string>
+    <string name="title_activity_main">Receptionist</string>
+    <string name="package_name">com.bytemedevstudio.receptionist</string>
+    <string name="custom_url_scheme">com.bytemedevstudio.receptionist</string>
+</resources>

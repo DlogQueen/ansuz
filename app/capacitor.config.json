@@ -1,0 +1,11 @@
+{
+  "appId": "com.bytemedevstudio.receptionist",
+  "appName": "Receptionist",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -241,6 +241,24 @@ Cloudflare Pages.
 This is separate from the server deploy below — the site is static and the
 server is not.
 
+## Receptionist console app (Android)
+
+`app/` is an Android app that shows what the receptionist did — today's numbers,
+every call with its transcript, the diary, unhandled messages. It answers no
+calls itself: Twilio reaches a server, not a phone, so the server answers and
+the app reads from it over a read-only, token-authenticated API
+(`/api/console/*`, see `src/receptionist/console.ts`).
+
+```sh
+cd app && npm install
+npx cap sync android
+cd android && ./gradlew assembleRelease
+```
+
+The signing keystore is deliberately not in git. Losing it means never being
+able to update the installed app again — back it up. Setup, the API, and the
+honest limits (Android only, no push, read-only): **[docs/console-app.md](docs/console-app.md)**.
+
 ## Next steps
 
 - Build the consolidation job (Edge Function or cron): summarize the short-term
