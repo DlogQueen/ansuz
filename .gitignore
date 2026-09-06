@@ -26,3 +26,5 @@ app/android/build/
 app/android/app/build/
 app/android/capacitor-cordova-android-plugins/
 app/android/local.properties
+Receptionist-*.apk
+receptionist-release.keystore
