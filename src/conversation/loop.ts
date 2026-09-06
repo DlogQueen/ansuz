@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { logInteraction, getRecentMemory } from '../memory/shortTermMemory.js';
-import { retrieveRelevantMemories } from '../memory/longTermMemory.js';
+import { retrieveRecentMemories, retrieveRelevantMemories } from '../memory/longTermMemory.js';
 import { embedText } from '../llm/embeddings.js';
-import { chatCompletion, type ChatMessage } from '../llm/openrouter.js';
+import { chatCompletion, isEmbeddingsAvailable, type ChatMessage } from '../llm/chat.js';
 import { buildSystemPrompt } from './systemPrompt.js';
 
 /**
@@ -19,8 +19,14 @@ export async function respond(params: { message: string; sessionId?: string }): 
 
   await logInteraction({ role: 'user', content: params.message, sessionId });
 
-  const queryEmbedding = await embedText(params.message);
-  const relevant = await retrieveRelevantMemories({ queryEmbedding, matchCount: 5 });
+  // Semantic retrieval needs an embeddings endpoint; Groq has none, so on that
+  // provider Sophie recalls recent important memories instead of relevant ones.
+  const relevant = isEmbeddingsAvailable()
+    ? await retrieveRelevantMemories({
+        queryEmbedding: await embedText(params.message),
+        matchCount: 5,
+      })
+    : await retrieveRecentMemories({ matchCount: 5, minImportance: 3 });
 
   const recent = await getRecentMemory(24);
   const sessionHistory: ChatMessage[] = recent

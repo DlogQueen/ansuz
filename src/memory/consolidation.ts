@@ -1,6 +1,6 @@
 import { getServiceClient } from '../lib/supabaseClient.js';
-import { embedText } from '../llm/embeddings.js';
-import { chatCompletion } from '../llm/openrouter.js';
+import { tryEmbedText } from '../llm/embeddings.js';
+import { chatCompletion, isEmbeddingsAvailable } from '../llm/chat.js';
 import { storeLongTermMemory } from './longTermMemory.js';
 import type { ShortTermMemoryEntry } from './types.js';
 
@@ -100,7 +100,9 @@ async function consolidateSession(sessionId: string, group: ShortTermMemoryEntry
   ]);
 
   const { summary, importance } = parseSummary(raw);
-  const embedding = await embedText(summary);
+  // tryEmbedText, not embedText: a failed embedding must not cost us the
+  // consolidated summary, since consolidation deletes its source rows.
+  const embedding = isEmbeddingsAvailable() ? await tryEmbedText(summary) : null;
 
   await storeLongTermMemory({
     summary,

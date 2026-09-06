@@ -7,3 +7,24 @@ dist/
 # Piper TTS binary + voice models -- large downloaded artifacts, not source.
 # See src/llm/piperTts.ts for how these get fetched.
 vendor/
+
+# generated single-file site preview
+site/.preview/
+
+# Netlify CLI local link state (per-machine, written by the deploy command)
+.netlify/
+
+# Console app (app/) — build outputs and signing material.
+# The keystore and its password must never be committed: anyone with both can
+# publish an update that Android will accept as genuine.
+app/node_modules/
+app/android/release.keystore
+app/android/keystore.properties
+app/keystore-password.txt
+app/android/.gradle/
+app/android/build/
+app/android/app/build/
+app/android/capacitor-cordova-android-plugins/
+app/android/local.properties
+Receptionist-*.apk
+receptionist-release.keystore

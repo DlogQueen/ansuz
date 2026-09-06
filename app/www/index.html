@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receptionist</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <span class="brand"><span class="mark">BM</span> Receptionist</span>
+    <button id="refresh" class="icon-btn" type="button" aria-label="Refresh">↻</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-view="today" role="tab" aria-selected="true">Today</button>
+    <button class="tab" data-view="calls" role="tab" aria-selected="false">Calls</button>
+    <button class="tab" data-view="diary" role="tab" aria-selected="false">Diary</button>
+    <button class="tab" data-view="setup" role="tab" aria-selected="false">Setup</button>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="view" data-view="today">
+    <div id="today-body" class="stack"></div>
+  </section>
+
+  <section class="view" data-view="calls" hidden>
+    <div id="calls-body" class="stack"></div>
+  </section>
+
+  <section class="view" data-view="diary" hidden>
+    <div id="diary-body" class="stack"></div>
+  </section>
+
+  <section class="view" data-view="setup" hidden>
+    <div class="stack">
+      <p class="hint">The app is a window onto your receptionist. It doesn't answer calls itself — your server does that, and this reads from it.</p>
+
+      <label class="field">
+        <span>Server address</span>
+        <input id="f-url" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://your-app.fly.dev">
+      </label>
+
+      <label class="field">
+        <span>Console token</span>
+        <input id="f-token" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="RECEPTIONIST_CONSOLE_TOKEN">
+      </label>
+
+      <label class="field">
+        <span>Business</span>
+        <input id="f-slug" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="smiles">
+      </label>
+
+      <div class="btn-row">
+        <button id="save" class="btn btn-primary" type="button">Save and test</button>
+        <button id="forget" class="btn btn-ghost" type="button">Forget</button>
+      </div>
+
+      <div id="setup-result"></div>
+
+      <div class="note amber">
+        <span class="lbl">Where this is stored</span>
+        <p>The token stays on this phone and is sent only to the address above. Anyone holding it can read your call transcripts and callers' numbers, so treat it like a password — and if this phone is lost, rotate it on the server.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

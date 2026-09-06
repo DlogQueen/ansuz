@@ -1,0 +1,37 @@
+# Fly.io deployment for the BMDC server.
+#
+# The important line is `auto_stop_machines = false`. Fly's default is to stop a
+# machine when it has no traffic and start it again on the next request -- which
+# is excellent for a stateless web app and wrong for this one. A stopped machine
+# runs no setInterval, so the memory consolidation job and the BMDC adapt cycle
+# simply never fire, and nothing tells you they didn't.
+#
+# Deploy:
+#   fly launch --no-deploy      (once, to create the app)
+#   fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... (etc)
+#   fly deploy
+
+app = "bmdc"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  CHAT_SERVER_PORT = "8787"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 40
+    hard_limit = 80
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Byte Me — the book | Byte Me Dev Studio</title>
+<meta name="description" content="The complete architecture of an autonomous AI sales crew: every table, every constraint, every security check, and an honest account of what we verified versus what we didn't. $3.99 on Kindle.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="mark">BM</span> Byte Me Dev Studio</a>
+    <nav class="site-nav">
+      <a href="/receptionist">Receptionist</a>
+      <a href="/crew">Sales Crew</a>
+      <a href="/book" aria-current="page">The Book</a>
+      <a href="#get">Get it</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Product 03 · $3.99 on Kindle</p>
+    <h1>Byte Me: building an AI crew that actually sells.</h1>
+    <p class="lede">The full architecture of the system on this site — the schema, the agent loop, the consent gate, the webhook signatures — written out in the order we actually built it, including the parts we got wrong first.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="#get">Where to get it</a>
+      <a class="btn btn-ghost" href="#inside">What's inside</a>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="note narrow">
+      <span class="lbl">Who it's for</span>
+      <p>You can write code and you've built things with an LLM API, but every "AI agent" tutorial you've read stops at a demo that talks to itself. This is the other half: what changes when the agent's output leaves the terminal and reaches a stranger's phone.</p>
+    </div>
+  </div>
+</section>
+
+<section id="inside">
+  <div class="wrap">
+    <h2>Six parts</h2>
+    <hr class="rule">
+    <p class="section-lede">Roughly 16,000 words. No filler chapters, no padded appendix of API docs you can read for free.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th style="width:9ch">Part</th><th>What it covers</th></tr></thead>
+        <tbody>
+          <tr><td class="num">One</td><td><strong>The shape of the thing.</strong> Why three agents instead of one, why no agent framework, and the single <code>think()</code> function all three share. What actually differs between a "manager" and a "researcher" turns out to be one row in a database.</td></tr>
+          <tr><td class="num">Two</td><td><strong>Memory that survives.</strong> A two-tier store — a rolling 24-hour log and a consolidated long-term layer with vector embeddings — and why an agent that can't remember last week's failure will repeat it forever.</td></tr>
+          <tr><td class="num">Three</td><td><strong>Touching the real world.</strong> Twilio and Stripe: signature verification from first principles, why you must hash the raw body and not the parsed one, and the replay window that closes the obvious attack.</td></tr>
+          <tr><td class="num">Four</td><td><strong>The consent gate.</strong> The one design decision the whole system is organised around, defended in three separate places, with a function that refuses to reverse an opt-out even when asked politely by code you wrote yourself.</td></tr>
+          <tr><td class="num">Five</td><td><strong>Adaptation and replication.</strong> How the crew scores itself on completed payments, kills its own campaigns, and grows a specialist when it needs one — inside caps that live in code rather than in a prompt.</td></tr>
+          <tr><td class="num">Six</td><td><strong>What broke.</strong> The bugs, the outage that killed every agent mid-build, and a plain list of what we verified against real services versus what is still only tested.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What you'll be able to build after it</h2>
+    <hr class="rule">
+    <ul class="features two-col">
+      <li>
+        <strong>A multi-agent system without a framework</strong>
+        <span>One function, a mandate per agent, and a JSON schema. You'll see why the frameworks add a layer you then have to debug through.</span>
+      </li>
+      <li>
+        <strong>Webhook verification you can defend</strong>
+        <span>Twilio's HMAC-SHA1 over URL-plus-sorted-params and Stripe's SHA-256 over the raw body, written out, plus why constant-time comparison isn't optional.</span>
+      </li>
+      <li>
+        <strong>Constraints the database enforces</strong>
+        <span>A Postgres exclusion constraint that makes double-booking impossible rather than unlikely — including the race that motivates it.</span>
+      </li>
+      <li>
+        <strong>Model output you can trust enough to act on</strong>
+        <span>Parsing, validating, and rejecting: what to do when the model returns a booking time that was never offered.</span>
+      </li>
+      <li>
+        <strong>A memory layer worth the name</strong>
+        <span>Consolidation, embeddings, importance filtering, and the failure where every write was silently discarded and nothing looked broken.</span>
+      </li>
+      <li>
+        <strong>An honest compliance picture</strong>
+        <span>TCPA, A2P 10DLC, and the two-week carrier review nobody mentions until you're blocked on it.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap narrow">
+    <h2>The chapter most books don't have</h2>
+    <hr class="rule">
+    <div class="prose">
+      <p>Part Six is a list of things that went wrong, written the way they happened rather than the way they'd look best.</p>
+      <p>One of them: the memory writes. Embeddings were configured, the key was valid, every call returned without an error the code could see — and every learning the crew produced was being dropped on the floor. Nothing logged. Nothing failed. The crew simply started every cycle knowing nothing, and looked exactly like a crew that was working.</p>
+      <p>Another: an SMS opt-out path that, under one specific ordering, would have kept messaging someone who had already texted STOP. That is a $500-per-message mistake and it was two lines from shipping.</p>
+      <p>We think the failures teach more than the architecture does. They're in the book at full length, with the fix.</p>
+    </div>
+    <div class="note amber" style="margin-top:26px">
+      <span class="lbl">What this book is not</span>
+      <p>It is not a beginner's introduction to LLMs, not a promise that agents will make you money, and not 400 pages. It's one system explained completely. If you want a survey of the field, this isn't it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="get">
+  <div class="wrap narrow">
+    <h2>Getting a copy</h2>
+    <hr class="rule">
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Detail</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Price</td><td class="num">$3.99</td></tr>
+          <tr><td>Format</td><td>Kindle ebook — readable on any device with the free Kindle app</td></tr>
+          <tr><td>Length</td><td>Six parts, ~16,000 words</td></tr>
+          <tr><td>Author</td><td>Byte Me Studios</td></tr>
+          <tr><td>Status</td><td><span class="chip chip-soon">Coming to Kindle</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:8px">
+      <span class="lbl">Not on the store yet</span>
+      <p>It's written and being prepared for Kindle Direct Publishing. Email us and we'll tell you the day it's live — one message, no list.</p>
+    </div>
+
+    <div class="btn-row" style="margin-top:22px">
+      <a class="btn btn-primary" href="mailto:bytemedevstudio@gmail.com?subject=Byte%20Me%20—%20tell%20me%20when%20the%20book%20is%20live">Tell me when it's out</a>
+      <a class="btn btn-ghost" href="/crew">Or just buy the crew</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/"><span class="mark">BM</span> Byte Me Dev Studio</a>
+        <p style="margin:14px 0 0;max-width:38ch;">AI systems that touch real customers, with the limits written down.</p>
+      </div>
+      <div>
+        <h5>Products</h5>
+        <ul>
+          <li><a href="/receptionist">The Receptionist</a></li>
+          <li><a href="/crew">The Sales Crew</a></li>
+          <li><a href="/book">Byte Me — the book</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/sms-terms">SMS Terms</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/ai-disclosure">AI Disclosure</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 Byte Me Studios. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
